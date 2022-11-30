@@ -1,0 +1,58 @@
+version: '3.9'
+services:
+  # client:
+    # build: client
+    # ports:
+    #   - "3000:3000"
+  eventbus:
+    build: server/eventbus
+    ports:
+      - "4000:4000"
+  deliveries:
+    build: server/deliveries
+    ports:
+      - "4001:4001"
+  drivers:
+    build: server/drivers
+    ports:
+      - "4002:4002"
+  cart:
+    build: server/cart
+    ports:
+      - "4003:4003"
+  favorites:
+    build: server/favorites
+    ports:
+      - "4004:4004"
+  metrics:
+    build: server/metrics
+    ports:
+      - "4005:4005"
+  notifications:
+    build: server/notifications
+    ports:
+      - "4006:4006"
+  pickups:
+    build: server/pickups
+    ports:
+      - "4007:4007"
+  restaurants:
+    build: server/restaurants
+    ports:
+      - "4008:4008"
+  review-comments:
+    build: server/review-comments
+    ports:
+      - "4009:4009"
+  reviews:
+    build: server/reviews
+    ports:
+      - "4010:4010"
+  users:
+    build: server/users
+    ports:
+      - "4011:4011"
+  wallet:
+    build: server/wallet
+    ports:
+      - "4012:4012"
