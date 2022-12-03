@@ -56,6 +56,8 @@ services:
       - "4008:4008"
     depends_on:
       - eventbus
+    environment:
+      DATABASE_URL: mongodb+srv://Befake:woJ3lbTZLYnlYgay@cluster0.pmskj9f.mongodb.net/?retryWrites=true&w=majority
   review-comments:
     build: server/review-comments
     ports:
