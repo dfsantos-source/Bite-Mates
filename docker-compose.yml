@@ -38,6 +38,8 @@ services:
       - "4005:4005"
     depends_on:
       - eventbus
+    environment:
+      DATABASE_URL: mongodb+srv://Befake:VTcs9nXYICf08QlU@cluster0.alqzhxc.mongodb.net/?retryWrites=true&w=majority
   notifications:
     build: server/notifications
     ports:
@@ -76,6 +78,8 @@ services:
       - "4011:4011"
     depends_on:
       - eventbus
+    environment:
+      DATABASE_URL: mongodb+srv://Befake:6a4rWhYjq4bReM94@cluster0.kf7533j.mongodb.net/?retryWrites=true&w=majority
   wallet:
     build: server/wallet
     ports:
