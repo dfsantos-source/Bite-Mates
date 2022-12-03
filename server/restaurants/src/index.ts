@@ -23,7 +23,7 @@ async function connectDB(): Promise<MongoClient> {
 async function initDB(mongo: MongoClient) {
   const db = mongo.db();
 
-  if (await db.listCollections({ name: 'products' }).hasNext()) {
+  if (await db.listCollections({ name: 'restaurants' }).hasNext()) {
     console.log('Collection already exists. Skipping initialization.');
     return;
   }
