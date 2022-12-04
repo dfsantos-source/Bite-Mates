@@ -20,12 +20,16 @@ services:
       - "4002:4002"
     depends_on:
       - eventbus
+    environment:
+      DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.6ym7hpw.mongodb.net/?retryWrites=true&w=majority
   cart:
     build: server/cart
     ports:
       - "4003:4003"
     depends_on:
       - eventbus
+    environment:
+      DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.gmkapfj.mongodb.net/?retryWrites=true&w=majority
   favorites:
     build: server/favorites
     ports:
@@ -46,6 +50,8 @@ services:
       - "4006:4006"
     depends_on:
       - eventbus
+    environment:
+      DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.4zeow8w.mongodb.net/?retryWrites=true&w=majority
   pickups:
     build: server/pickups
     ports:
