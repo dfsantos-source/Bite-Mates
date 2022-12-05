@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 
 export interface Restaurant {
-    _id?: ObjectId,
+    _id: ObjectId,
     name: string,
     address: string,
     type: string,

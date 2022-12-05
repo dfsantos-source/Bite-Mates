@@ -34,7 +34,7 @@ async function start() {
 
   //CREATING NEW REVIEW FOR DRIVERID
   app.post('/api/reviews/driver/create', async (req: Request, res: Response) => {
-    const { userId, driverId, content, rating} : {userId: string, driverId: string, content: string, rating: number} = req.body;
+    const { userId, driverId, content, rating} : {userId: ObjectId, driverId: ObjectId, content: string, rating: number} = req.body;
     if(userId == null || driverId == null || content == null || rating == null){
       res.status(400).send({message: "Body not complete"});
       return;
@@ -51,7 +51,7 @@ async function start() {
         rating
       }
       await reviews.insertOne(review);
-      
+
       res.status(201).send({
         message: "Review successfully registered",
         _id,
@@ -70,7 +70,7 @@ async function start() {
 
   //CREATING NEW REVIEW FOR RESTAURANTID
   app.post('/api/reviews/restaurant/create', async (req: Request, res: Response) => {
-    const { userId, restaurantId, content, rating} : {userId: string, restaurantId: string, content: string, rating: number} = req.body;
+    const { userId, restaurantId, content, rating} : {userId: ObjectId, restaurantId: ObjectId, content: string, rating: number} = req.body;
     if(userId == null || restaurantId == null || content == null || rating == null){
       res.status(400).send({message: "Body not complete"});
       return;
@@ -86,6 +86,7 @@ async function start() {
         content,
         rating
       };
+      
       await reviews.insertOne(review);
 
       res.status(201).send({
@@ -120,16 +121,15 @@ async function start() {
     try{
       const db = mongo.db();
       const driver_reviews = db.collection('driver_reviews');
-      const reviews = await driver_reviews.find({'driverId': driverId}).toArray();
+      const reviews = await driver_reviews.find({'driverId': new ObjectId(driverId)}).toArray();
 
       if (!reviews) {
         res.status(404).send({message: "No driver found"});
         return;
       }
 
-      res.status(200).send(reviews);
+      res.status(200).send({reviews});
       return;
-
     }
     catch(err:any) {
       res.status(500).send({error: err.message});
@@ -153,14 +153,14 @@ async function start() {
     try {
       const db = mongo.db();
       const restaurant_reviews = db.collection('restaurant_reviews');
-      const reviews = await restaurant_reviews.find({"restarauntId": restaurantId}).toArray();
+      const reviews = await restaurant_reviews.find({"restaurantId": new ObjectId(restaurantId)}).toArray();
 
       if (!reviews) {
         res.status(404).send({message: "No restaurant found"});
         return;
       }
 
-      res.status(200).send(reviews);
+      res.status(200).send({reviews});
       return;
     }
     catch(err:any) {
