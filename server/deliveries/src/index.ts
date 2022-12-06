@@ -93,6 +93,9 @@ async function start() {
         res.status(404).send({ message: 'Delivery not found.' });
       }
       else{
+        axios.post('http://eventbus:4000/events', updatedDelivery).catch((err) => {
+          console.log(err.message);
+        });
         res.status(200).json({delivery: updatedDelivery, message: 'Driver successfully assigned.' });
       }
     }
@@ -111,6 +114,9 @@ async function start() {
         res.status(404).send({ message: 'Delivery not found.' });
       }
       else{
+        axios.post('http://eventbus:4000/events', updatedDelivery).catch((err) => {
+          console.log(err.message);
+        });
         res.status(200).json({delivery: updatedDelivery, message: 'Delivery has been completed.' });
       }
     }
