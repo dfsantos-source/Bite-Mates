@@ -54,7 +54,7 @@ async function start() {
   app.post('/events', (req: Request, res: Response) => {
     const event = req.body;
     const delivery = event.data;
-    if(event.type === "DeliveryProccessed"){
+    if(event.type === "OrderProccessed"){
       if(delivery.status === "ordered"){
         const db = mongo.db();
         const deliveries = db.collection("deliveries");
@@ -71,7 +71,7 @@ async function start() {
     const body = req.body;
     if(body.userid !== null && body.time !== null && body.foods !== null && body.totalPrice !== null){
       const delivery = {
-        type : "DeliveryCreated",
+        type : "OrderCreated",
         data : {body}
       }
       axios.post('http://eventbus:4000/events', delivery).catch((err) => {
@@ -83,12 +83,12 @@ async function start() {
     }
   });
 
-  app.put('/api/delivery/driver/assign', (req: Request, res: Response) => {
+  app.put('/api/delivery/driver/assign', async (req: Request, res: Response) => {
     const body = req.body;
     const db = mongo.db();
     if(body.deliveryid !== null && body.driverid !== null){
       const deliveries = db.collection("deliveries");
-      const updatedDelivery = deliveries.findOneAndUpdate({deliveryid: body.deliveryid}, {$set: {driverid: body.driverid, status: "in transit"}}, {returnDocument : "after"});
+      const updatedDelivery = await deliveries.findOneAndUpdate({deliveryid: body.deliveryid}, {$set: {driverid: body.driverid, status: "in transit"}}, {returnDocument : "after"});
       if(updatedDelivery === null){
         res.status(404).send({ message: 'Delivery not found.' });
       }
@@ -101,12 +101,12 @@ async function start() {
     }
   });
 
-  app.put('/api/delivery/complete', (req: Request, res: Response) => {
+  app.put('/api/delivery/complete', async (req: Request, res: Response) => {
     const body = req.body;
     const db = mongo.db();
     if(body.deliveryid !== null){
       const deliveries = db.collection("deliveries");
-      const updatedDelivery = deliveries.findOneAndUpdate({deliveryid: body.deliveryid}, {$set: {status: "delivered"}}, {returnDocument : "after"});
+      const updatedDelivery = await deliveries.findOneAndUpdate({deliveryid: body.deliveryid}, {$set: {status: "delivered"}}, {returnDocument : "after"});
       if(updatedDelivery === null){
         res.status(404).send({ message: 'Delivery not found.' });
       }

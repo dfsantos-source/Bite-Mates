@@ -34,7 +34,7 @@ async function start() {
     const delivery = event.data;
     const db = mongo.db();
     const wallets = db.collection("wallet");
-    if(event.type === "DeliveryCreated"){
+    if(event.type === "OrderCreated"){
       let curStatus = "ordered";
       try{
         const walletPromise = await wallets.findOne({userid: delivery.userid});
@@ -56,7 +56,7 @@ async function start() {
       }
 
       const processedDelivery = {
-        type : "DeliveryProccessed",
+        type : "OrderProccessed",
         data : {...delivery, driverid: null, status: curStatus}
       } 
 
@@ -71,7 +71,7 @@ async function start() {
     const db = mongo.db();
     const wallets = db.collection("wallet");
     if(body.userid !== null){
-      const wallet = wallets.find({userid: body.userid});
+      const wallet = await wallets.findOne({userid: body.userid});
       if(wallet === null){
         res.status(404).send({ message: 'Wallet or User not found.' });
       }
@@ -85,12 +85,12 @@ async function start() {
     }
   });
 
-  app.get('/api/wallet/get/:userid', (req: Request, res: Response) => {
+  app.get('/api/wallet/get/:userid', async (req: Request, res: Response) => {
     const userid = req.params.userid;
     const db = mongo.db();
     const wallets = db.collection("wallet");
     if(userid !== null){
-      const wallet = wallets.find({userid: userid});
+      const wallet = await wallets.findOne({userid: userid});
       if(wallet === null){
         res.status(404).send({ message: 'Wallet or User not found.' });
       }
