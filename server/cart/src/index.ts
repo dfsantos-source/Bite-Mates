@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
-import { MongoClient } from 'mongodb';
+import { Collection, Db, Document, ModifyResult, MongoClient, WithId } from 'mongodb';
 import { Cart, CartItem, Food } from './types/dataTypes';
+import { initRestaurants } from './initData';
 import { ObjectId } from 'mongodb';
 import axios from 'axios';
 import cors from 'cors';
@@ -20,19 +21,33 @@ const port = 4003;
 console.log(process.env.DATABASE_URL);
 
 async function connectDB(): Promise<MongoClient> {
-  const uri = process.env.DATABASE_URL;
+  const uri: string | undefined = process.env.DATABASE_URL;
 
   if (uri === undefined) {
     throw Error('DATABASE_URL environment variable is not specified');
   }
 
-  const mongo = new MongoClient(uri);
+  const mongo: MongoClient = new MongoClient(uri);
   await mongo.connect();
   return await Promise.resolve(mongo);
 }
 
+async function initDB(mongo: MongoClient) {
+  const db = mongo.db();
+
+  if (await db.listCollections({ name: 'restaurants' }).hasNext()) {
+    console.log('Collection already exists. Skipping initialization.');
+    return;
+  }
+
+  const products = db.collection('restaurants');
+  const result = await products.insertMany(initRestaurants);
+}
+
 async function start() {
   const mongo = await connectDB();
+
+  await initDB(mongo);
 
   app.post('/api/cart/create', async (req: Request, res: Response) => {
     const { userId }: { userId: string } = req.body;
@@ -44,9 +59,9 @@ async function start() {
       res.status(400).send({message: "Id is not a valid mongo ObjectId"});
       return;
     }
-    const db = mongo.db();
-    const carts = db.collection('carts');
-    const _id = new ObjectId();
+    const db: Db = mongo.db();
+    const carts: Collection<Document> = db.collection('carts');
+    const _id: ObjectId = new ObjectId();
     const cart: Cart = {
       _id,
       userId: new ObjectId(userId),
@@ -62,7 +77,7 @@ async function start() {
   });
 
   app.get('/api/cart/get/:userId', async (req: Request, res: Response) => {
-    const { userId } = req.params;
+    const userId: string = req.params['userId'];
     if (userId == null) {
       res.status(400).send({message: "Body not complete"});
       return;
@@ -71,10 +86,10 @@ async function start() {
       res.status(400).send({message: "Id is not a valid mongo ObjectId"});
       return;
     }
-    const db = mongo.db();
-    const carts = db.collection('carts');
+    const db: Db = mongo.db();
+    const carts: Collection<Document> = db.collection('carts');
     try {
-      const cart = await carts.findOne({"userId" : new ObjectId(userId)});
+      const cart: WithId<Document> | null = await carts.findOne({"userId" : new ObjectId(userId)});
       if (!cart) {
         res.status(404).send({message: `Cart not found`});
         return;
@@ -100,12 +115,12 @@ async function start() {
     const db = mongo.db();
     const carts = db.collection('carts');
     try {
-      const cartDB = await carts.findOne({"userId" : new ObjectId(userId)});
+      const cartDB: WithId<Document> | null = await carts.findOne({"userId" : new ObjectId(userId)});
       if (!cartDB) {
         res.status(400).send({message: "Cart not found"});
         return;
       }
-      const cartId = cartDB._id;
+      const cartId: ObjectId = cartDB._id;
       for (let i=0; i<cartDB.items.length; ++i) {
         if (cartDB.items[i].foodId.toString().toLowerCase() === food._id.toString().toLowerCase()) {
           cartDB.items[i].quantity += 1;
@@ -132,30 +147,32 @@ async function start() {
     }
   });
 
-  app.put('/api/cart/remove/:cartId/:itemId', async (req: Request, res: Response) => {
-    const { cartId, itemId } = req.params;
-    if (cartId == null || itemId == null) {
+  app.put('/api/cart/remove/:userId/:foodId', async (req: Request, res: Response) => {
+    const userId = req.params['userId'];
+    const foodId = req.params['foodId'];
+    if (userId == null || foodId == null) {
       res.status(400).send({message: "Body not complete"});
       return;
     }
-    if (!ObjectId.isValid(cartId) || !ObjectId.isValid(itemId)) {
+    if (!ObjectId.isValid(userId) || !ObjectId.isValid(foodId)) {
       res.status(400).send({message: "Id is not a valid mongo ObjectId"});
       return;
     }
-    const db = mongo.db();
-    const carts = db.collection('carts');
+    const db: Db = mongo.db();
+    const carts: Collection<Document> = db.collection('carts');
     try {
-      const cartDB = await carts.findOne({"_id" : new ObjectId(cartId)});
+      const cartDB: WithId<Document> | null = await carts.findOne({"userId" : new ObjectId(userId)});
       if (!cartDB) {
         res.status(400).send({message: "Cart not found"});
         return;
       }
-      const items = cartDB.items;
-      const updatedItems = items.filter((item: CartItem) => {
-        return item._id.toString() !== itemId;
+      const cartId: ObjectId = cartDB._id;
+      const items: CartItem[] = cartDB.items;
+      const updatedItems: CartItem[] = items.filter((item: CartItem): boolean => {
+        return item.foodId.toString() !== foodId;
       });
       if (!(updatedItems.length < items.length)) {
-        res.status(400).send({message: "Item not found"});
+        res.status(400).send({message: "Food not found"});
         return;
       }
       const updatedCart = await carts.findOneAndUpdate({"_id" : new ObjectId(cartId)}, { $set: { "items" : updatedItems } }, {returnDocument: "after"});
@@ -168,8 +185,9 @@ async function start() {
   });
 
   app.put('/api/cart/edit/quantity/:cartId/:itemId', async (req: Request, res: Response) => {
-    const { cartId, itemId } = req.params;
-    const { quantity } = req.body;
+    const cartId = req.params['cartId'];
+    const itemId = req.params['itemId'];
+    const { quantity }: {quantity: number} = req.body;
     if (cartId == null || itemId == null || quantity == null) {
       res.status(400).send({message: "Body not complete"});
       return;
@@ -178,18 +196,24 @@ async function start() {
       res.status(400).send({message: "Id is not a valid mongo ObjectId"});
       return;
     }
-    const db = mongo.db();
-    const carts = db.collection('carts');
+    const db: Db = mongo.db();
+    const carts: Collection<Document> = db.collection('carts');
     try {
-      const cartDB = await carts.findOne({"_id" : new ObjectId(cartId)});
+      const cartDB: WithId<Document> | null = await carts.findOne({"_id" : new ObjectId(cartId)});
       if (!cartDB) {
         res.status(400).send({message: "Cart not found"});
         return;
       }
-      const items = cartDB.items;
+      const items: CartItem[] = cartDB.items;
       for (let i=0; i<items.length; ++i) {
         if (items[i]._id.toString() === itemId) {
           items[i].quantity = quantity;
+          if (items[i].quantity === 0) {
+            items.splice(i, 1);
+            const updatedCart = await carts.findOneAndUpdate({"_id" : new ObjectId(cartId)}, { $set: { "items" : items} }, {returnDocument: "after"});
+            res.status(200).send(updatedCart.value);
+            return;
+          }
           const updatedCart = await carts.findOneAndUpdate({"_id" : new ObjectId(cartId)}, { $set: { "items" : items} }, {returnDocument: "after"});
           res.status(200).send(updatedCart.value);
           return;
@@ -201,6 +225,39 @@ async function start() {
       res.status(500).send({error: err.message});
       return;
     }
+  });
+  
+  app.post('/events', async (req: Request, res: Response) => {
+
+    const { type }: {type: string} = req.body;
+
+    if (type === 'UserCreated') {
+      const { data } = req.body;
+
+      const { userId } = data;
+
+      await axios.post('http://drivers:4002/api/cart/create', {userId});
+    }
+
+    if (type === 'OrderProcessed') {
+      const { data } = req.body;
+
+      const { userId, foods } = data;
+
+      const foodIds = foods.map((food: any) => food.foodId);
+
+      try {
+        for (let i=0; i<foodIds.length; ++i) {
+          const foodId = foodIds[i];
+          await axios.post(`http://drivers:4002/api/cart/remove/${userId}/${foodId}`, {});
+        }
+      } catch(err) {
+        res.status(500).send({message: 'Error occurred while updating cart triggered from -> DeliveryCreated event'})
+      }
+    }
+
+    res.send({ message: 'ok' });
+    return;
   });
 
   app.get('/', (req: Request, res: Response) => {

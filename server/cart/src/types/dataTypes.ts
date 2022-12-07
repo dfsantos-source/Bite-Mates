@@ -21,3 +21,11 @@ export interface Food {
     price: number,
     restaurantId: ObjectId
 }
+
+export interface Restaurant {
+    _id?: ObjectId,
+    name: string,
+    address: string,
+    type: string,
+    foods: Food[]
+}
