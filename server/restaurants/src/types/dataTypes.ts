@@ -12,6 +12,6 @@ export interface Restaurant {
 export interface Food {
     _id: ObjectId,
     name: string,
-    price: string,
+    price: number,
     restaurantId: ObjectId
 }

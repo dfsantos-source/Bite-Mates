@@ -1,6 +1,8 @@
 import express, { Request, Response } from 'express';
 import { MongoClient } from 'mongodb';
 import { initRestaurants } from './initData';
+import { ObjectId } from 'mongodb';
+import { Restaurant, Food } from './types/dataTypes';
 
 const app = express();
 const port = 4008;
@@ -45,6 +47,174 @@ async function start() {
 
   app.get('/', (req: Request, res: Response) => {
     res.send({ message: 'ok' });
+  });
+
+  //creating restaurant document
+  app.post('/api/restaurants/create', async (req: Request, res: Response) =>{
+    const {name, address, type}: {name: string, address: string, type: string} = req.body;
+
+    if(name == null || address == null || type == null){
+      res.status(400).send({message: "Body not complete"});
+      return;
+    }
+
+    try{
+      const db = mongo.db();
+      const restaurants = db.collection('restaurants');
+      const _id = new ObjectId();
+      const foods: Food[] = [];
+      const restaurant: Restaurant = {
+        _id,
+        name,
+        address,
+        type,
+        foods
+      }
+
+      await restaurants.insertOne(restaurant);
+
+      res.status(201).send({
+        message: "Restaurant successfully registered",
+        _id,
+        name,
+        address,
+        type,
+        foods
+      });
+
+      return;
+    }
+    catch (err: any) {
+      res.status(500).send({error: err.message});
+    }
+  });
+
+  app.post('/api/restaurants/foods/create', async (req: Request, res: Response) =>{
+    const {name, price, restaurantId}: {name: string, price: number, restaurantId: ObjectId} = req.body;
+
+    if(name == null || price == null || restaurantId == null){
+      res.status(400).send({message: "Body not complete"});
+      return;
+    }
+    if (!ObjectId.isValid(restaurantId)) {
+      res.status(400).send({message: "restaurantId is not a valid mongo Id"});   
+      return;
+    }
+    try{
+      const db = mongo.db();
+      const foods = db.collection('foods');
+      const _id = new ObjectId();
+      const food: Food = {
+        _id,
+        name,
+        price,
+        restaurantId
+      }
+
+      foods.insertOne(food);
+
+      res.status(201).send({
+        message: "Food successfully registered",
+        _id,
+        name,
+        price,
+        restaurantId
+      })
+
+    }
+    catch (err: any) {
+      res.status(500).send({error: err.message});
+    }
+  });
+
+  app.get('/api/restaurants/get/all', async (req: Request, res: Response) =>{
+    try{
+      const db = mongo.db();
+      const restaurants_doc = db.collection('restaurants');
+      const restaurants = await restaurants_doc.find().toArray();
+
+      if (!restaurants) {
+        res.status(404).send({message: "No restaurants found"});
+        return;
+      }
+
+      res.status(201).send({restaurants});
+      return;
+    }
+    catch(err:any) {
+      res.status(500).send({error: err.message});
+      return;
+    }
+  });
+
+  app.get('/api/restaurants/get/:restaurantId', async (req: Request, res: Response) =>{
+    const {restaurantId} = req.params;
+
+    if (restaurantId == null) {
+      res.status(400).send({message: "Body not complete"});
+      return;
+    }
+    if (!ObjectId.isValid(restaurantId)) {
+      res.status(400).send({message: "restaurantId is not a valid mongo Id"});   
+      return;
+    }
+    try {
+      const db = mongo.db();
+      const restaurants_doc = db.collection('restaurants');
+      const restaurant = await restaurants_doc.findOne({"_id" : new ObjectId(restaurantId)});
+
+      if (!restaurant) {
+        res.status(404).send({message: "Restaurant not found"});
+        return;
+      }
+
+      const {_id, name, address, type, foods}: {_id: ObjectId, name: string, address: string, type: string, foods: Food[]} = restaurant;
+      res.status(201).send({
+        _id,
+        name,
+        address,
+        type,
+        foods
+      });
+
+      return;
+
+    }
+    catch(err:any) {
+      res.status(500).send({error: err.message});
+      return;
+    }
+  });
+
+  app.get('api/restaurants/foods/get/:restaurantId', async (req: Request, res: Response) =>{
+    const {restaurantId} = req.params;
+
+    if (restaurantId == null) {
+      res.status(400).send({message: "Body not complete"});
+      return;
+    }
+    if (!ObjectId.isValid(restaurantId)) {
+      res.status(400).send({message: "restaurantId is not a valid mongo Id"});   
+      return;
+    }
+    try{
+      const db = mongo.db();
+      const restaurants_doc = db.collection('restaurants');
+      const restaurant = await restaurants_doc.findOne({"_id" : new ObjectId(restaurantId)});
+
+      if (!restaurant) {
+        res.status(404).send({message: "Restaurant not found"});
+        return;
+      }
+
+      const {foods}: {foods: Food[]} = restaurant;
+      res.status(201).send({foods});
+      return;
+    }
+    catch(err:any) {
+      res.status(500).send({error: err.message});
+      return;
+    }
   });
 
   app.listen(port, () => {
