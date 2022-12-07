@@ -4,5 +4,6 @@ export interface Driver {
     _id: ObjectId,
     name: string,
     email: string,
-    password: string
+    password: string,
+    doNotDisurb: boolean
 }
