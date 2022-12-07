@@ -51,14 +51,14 @@ async function start() {
     res.send({ message: 'ok' });
   });
 
-  app.post('/events', (req: Request, res: Response) => {
+  app.post('/events', async (req: Request, res: Response) => {
     const event = req.body;
     const delivery = event.data;
     if(event.type === "OrderProccessed"){
       if(delivery.status === "ordered"){
         const db = mongo.db();
         const deliveries = db.collection("deliveries");
-        deliveries.insertOne(delivery);
+       await deliveries.insertOne(delivery);
         res.status(201).json({delivery: delivery, message: "Delivery successfully Added"});
       }
       else{

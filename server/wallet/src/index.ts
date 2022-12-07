@@ -41,7 +41,7 @@ async function start() {
         if(walletPromise !== null){
           const wallet = walletPromise.data;
           if(wallet.balance <= event.totalPrice){
-            wallets.updateOne({userid: delivery.userid}, {$inc: {balance: (-delivery.totalPrice)}});
+            await wallets.updateOne({userid: delivery.userid}, {$inc: {balance: (-delivery.totalPrice)}});
           }
           else{
             curStatus = "rejected";
