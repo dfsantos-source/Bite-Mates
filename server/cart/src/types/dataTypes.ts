@@ -29,3 +29,11 @@ export interface Restaurant {
     type: string,
     foods: Food[]
 }
+
+export interface User {
+    _id?: ObjectId,
+    name: string,
+    address: string,
+    email: string,
+    doNotDisturb: boolean
+}

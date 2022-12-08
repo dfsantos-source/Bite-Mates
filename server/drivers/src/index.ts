@@ -34,8 +34,8 @@ async function connectDB(): Promise<MongoClient> {
 }
 
 function verifyDriverToken(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.split(" ")[1];
+  const authHeader: string | undefined = req.headers.authorization;
+  const token: string | undefined = authHeader?.split(" ")[1];
   if (token === undefined) {
     res.status(400).json({ message: "Token is missing from header" });
     return
@@ -95,7 +95,7 @@ async function start() {
         return;
       }
 
-      const token = jwt.sign({ _id }, process.env.ACCESS_TOKEN, {});
+      const token: string = jwt.sign({ _id }, process.env.ACCESS_TOKEN, {});
 
       res.status(201).send({
         message: "Driver successfully registered",
@@ -126,7 +126,7 @@ async function start() {
         res.status(404).send({message: "Failed to login, no driver found with email."});
         return;
       }
-      const passValid = await bcrypt.compare(password, driver.password);
+      const passValid: boolean = await bcrypt.compare(password, driver.password);
       if (!passValid) {
         res.status(404).send({message: "Failed to login, password incorrect."});
         return;
@@ -135,7 +135,7 @@ async function start() {
         res.status(500).json("access token is missing");
         return
       }
-      const token = jwt.sign({ _id: driver._id }, process.env.ACCESS_TOKEN, {});
+      const token: string = jwt.sign({ _id: driver._id }, process.env.ACCESS_TOKEN, {});
       res.status(200).send({
         message: 'Login successful',
         _id: driver._id,

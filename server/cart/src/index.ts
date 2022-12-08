@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { Collection, Db, Document, ModifyResult, MongoClient, WithId } from 'mongodb';
-import { Cart, CartItem, Food } from './types/dataTypes';
+import { Cart, CartItem, Food, User, Restaurant } from './types/dataTypes';
 import { initRestaurants } from './initData';
 import { ObjectId } from 'mongodb';
 import axios from 'axios';
@@ -169,7 +169,7 @@ async function start() {
       const cartId: ObjectId = cartDB._id;
       const items: CartItem[] = cartDB.items;
       const updatedItems: CartItem[] = items.filter((item: CartItem): boolean => {
-        return item.foodId.toString() !== foodId;
+        return item.foodId.toString() !== foodId.toLowerCase();
       });
       if (!(updatedItems.length < items.length)) {
         res.status(400).send({message: "Food not found"});
@@ -228,37 +228,86 @@ async function start() {
   });
   
   app.post('/events', async (req: Request, res: Response) => {
-
     const { type }: {type: string} = req.body;
-
     if (type === 'UserCreated') {
       const { data } = req.body;
+      const { _id, name, address, email, doNotDisturb } = data;
+      await axios.post('http://localhost:4003/api/cart/create', {userId: _id});
+      if (_id == undefined || name == undefined || address == undefined || email == undefined || doNotDisturb == undefined) {
+        res.status(400).json({ message: 'Event data incomplete' })
+        return;
+      }
+      try {
+        const db = mongo.db()
+        const newUser: User = {
+          _id,
+          name,
+          address,
+          email,
+          doNotDisturb
+        }
+        const users = db.collection("users")
+        await users.insertOne(newUser)
+        res.status(200).send({message: "Successfully handled UserCreated event inside Cart service"});
+        return;
+      } catch (error) {
+        res.status(500).json(error)
+        return;
+      }
+    }
 
-      const { userId } = data;
-
-      await axios.post('http://drivers:4002/api/cart/create', {userId});
+    // TODO: create a restaurant based on the event...
+    if (type === 'RestaurantCreated') {  
+      const { data } = req.body;
+      const { _id, name, address, type, foods } = data;
+      if (_id == undefined || name == undefined || address == undefined || type == undefined || foods == undefined) {
+        res.status(400).json({ message: 'Event data incomplete' })
+        return;
+      }
+      try {
+        const db = mongo.db()
+        const newRestaurant: Restaurant = {
+          _id,
+          name,
+          address,
+          type,
+          foods
+        }
+        const restaurants = db.collection("restaurants")
+        await restaurants.insertOne(newRestaurant)
+        res.status(200).send({message: "Successfully handled RestaurantCreated event inside Cart service"});
+        return;
+      } catch (error) {
+        res.status(500).json(error)
+        return;
+      }
     }
 
     if (type === 'OrderProcessed') {
       const { data } = req.body;
-
       const { userId, foods } = data;
-
-      const foodIds = foods.map((food: any) => food.foodId);
-
+      const foodIds = foods.map((food: any) => food._id);
       try {
         for (let i=0; i<foodIds.length; ++i) {
           const foodId = foodIds[i];
-          await axios.post(`http://drivers:4002/api/cart/remove/${userId}/${foodId}`, {});
+          await axios.put(`http://localhost:4003/api/cart/remove/${userId}/${foodId}`, {});
         }
+        res.status(200).send({message: "Successfully handled OrderProcessed event inside Cart service"});
+        return;
       } catch(err) {
         res.status(500).send({message: 'Error occurred while updating cart triggered from -> DeliveryCreated event'})
       }
     }
-
-    res.send({ message: 'ok' });
     return;
   });
+
+  const eventSubscriptions = ["UserCreated", "OrderProcessed", "RestaurantCreated"];
+  const eventURL = "http://cart:4003/events"
+
+  await axios.post("http://eventbus:4000/subscribe", {
+    eventTypes: eventSubscriptions,
+    URL: eventURL
+  })
 
   app.get('/', (req: Request, res: Response) => {
     res.send({ message: 'ok' });
