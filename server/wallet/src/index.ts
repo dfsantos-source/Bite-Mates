@@ -47,7 +47,6 @@ async function start() {
           }
         }
         else{
-          console.log("ayo what up");
           throw new Error;
         }
       }
@@ -56,7 +55,7 @@ async function start() {
       }
 
       const processedDelivery = {
-        type : "OrderProccessed",
+        type : "OrderProcessed",
         data : {...delivery, driverId: null, status: curStatus}
       } 
 
@@ -64,7 +63,7 @@ async function start() {
         console.log(err.message);
       });
 
-      res.status(200).json({order: processedDelivery , message: 'Order proccessed successfully.' });
+      res.status(200).json({order: processedDelivery , message: 'Order processed successfully.' });
     }
   });
 
