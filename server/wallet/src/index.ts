@@ -33,15 +33,15 @@ async function start() {
     const event = req.body;
     const delivery = event.data;
     const db = mongo.db();
-    const wallets = db.collection("wallet");
+    const wallets = db.collection("wallets");
     if(event.type === "OrderCreated"){
       let curStatus = "ordered";
       try{
-        const walletPromise = await wallets.findOne({userid: delivery.userid});
+        const walletPromise = await wallets.findOne({userid: new ObjectId(delivery.userid)});
         if(walletPromise !== null){
           const wallet = walletPromise.data;
           if(wallet.balance <= event.totalPrice){
-            await wallets.updateOne({userid: delivery.userid}, {$inc: {balance: (-delivery.totalPrice)}});
+            await wallets.updateOne({userid: new ObjectId(delivery.userid)}, {$inc: {balance: (-delivery.totalPrice)}});
           }
           else{
             curStatus = "rejected";
@@ -69,14 +69,14 @@ async function start() {
   app.put('/api/wallet/update', async (req: Request, res: Response) => {
     const body = req.body;
     const db = mongo.db();
-    const wallets = db.collection("wallet");
-    if(body.userid !== null){
-      const wallet = await wallets.findOne({userid: body.userid});
+    const wallets = db.collection("wallets");
+    if(body.userId !== null){
+      const wallet = await wallets.findOne({userId: new ObjectId(body.userId)});
       if(wallet === null){
         res.status(404).send({ message: 'Wallet or User not found.' });
       }
       else{
-        const updatedWallet = await wallets.findOneAndUpdate({userid: body.userid}, {$inc: {balance: body.balance}}, {returnDocument : "after"});
+        const updatedWallet = await wallets.findOneAndUpdate({userId: new ObjectId(body.userId)}, {$inc: {balance: body.balance}}, {returnDocument : "after"});
         res.status(200).json({wallet: updatedWallet, message: 'Balance successfully added.' });
       }
     }
@@ -88,9 +88,9 @@ async function start() {
   app.get('/api/wallet/get/:userid', async (req: Request, res: Response) => {
     const userid = req.params.userid;
     const db = mongo.db();
-    const wallets = db.collection("wallet");
+    const wallets = db.collection("wallets");
     if(userid !== null){
-      const wallet = await wallets.findOne({userid: userid});
+      const wallet = await wallets.findOne({userId: new ObjectId(userid)});
       if(wallet === null){
         res.status(404).send({ message: 'Wallet or User not found.' });
       }
