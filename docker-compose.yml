@@ -16,6 +16,7 @@ services:
       - eventbus
     environment:
       DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.g1dgnsz.mongodb.net/?retryWrites=true&w=majority
+      ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
   drivers:
     build: server/drivers
     ports:
@@ -24,6 +25,7 @@ services:
       - eventbus
     environment:
       DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.6ym7hpw.mongodb.net/?retryWrites=true&w=majority
+      ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
   cart:
     build: server/cart
     ports:
@@ -32,6 +34,7 @@ services:
       - eventbus
     environment:
       DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.gmkapfj.mongodb.net/?retryWrites=true&w=majority
+      ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
   favorites:
     build: server/favorites
     ports:
@@ -46,6 +49,7 @@ services:
       - eventbus
     environment:
       DATABASE_URL: mongodb+srv://Befake:VTcs9nXYICf08QlU@cluster0.alqzhxc.mongodb.net/?retryWrites=true&w=majority
+      ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
   notifications:
     build: server/notifications
     ports:
@@ -54,6 +58,7 @@ services:
       - eventbus
     environment:
       DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.4zeow8w.mongodb.net/?retryWrites=true&w=majority
+      ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
   pickups:
     build: server/pickups
     ports:
@@ -62,6 +67,7 @@ services:
       - eventbus
     environment:
       DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.yuqg0pj.mongodb.net/?retryWrites=true&w=majority
+      ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
   restaurants:
     build: server/restaurants
     ports:
@@ -70,6 +76,7 @@ services:
       - eventbus
     environment:
       DATABASE_URL: mongodb+srv://Befake:woJ3lbTZLYnlYgay@cluster0.pmskj9f.mongodb.net/?retryWrites=true&w=majority
+      ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
   review-comments:
     build: server/review-comments
     ports:
@@ -78,6 +85,7 @@ services:
       - eventbus
     environment:
       DATABASE_URL: mongodb+srv://Befake:PP6xbGLLXdabHFI1@cluster0.milf9lq.mongodb.net/?retryWrites=true&w=majority
+      ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
   reviews:
     build: server/reviews
     ports:
@@ -101,3 +109,4 @@ services:
       - eventbus
     environment:
       DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.4uevgsr.mongodb.net/?retryWrites=true&w=majority
+      ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
