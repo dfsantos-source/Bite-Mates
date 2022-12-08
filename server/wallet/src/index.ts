@@ -57,7 +57,7 @@ async function start() {
 
       const processedDelivery = {
         type : "OrderProccessed",
-        data : {...delivery, driverid: null, status: curStatus}
+        data : {...delivery, driverId: null, status: curStatus}
       } 
 
       await axios.post('http://eventbus:4000/events', processedDelivery).catch((err) => {
