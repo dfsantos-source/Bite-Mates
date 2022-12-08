@@ -69,9 +69,6 @@ async function start() {
 
   app.post('/api/pickup/create', (req: Request, res: Response) => {
     const body = req.body;
-    const db = mongo.db();
-        const pickups = db.collection("pickups");
-       pickups.insertOne({});
     if(body.userId !== null && body.time !== null && body.foods !== null && body.totalPrice !== null){
       const pickup = {
         type : "OrderCreated",
