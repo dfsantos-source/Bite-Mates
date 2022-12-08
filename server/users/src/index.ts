@@ -100,7 +100,7 @@ async function start() {
         }
       }
 
-      // await axios.post("http://eventbus:4000/events", event);
+      await axios.post("http://eventbus:4000/events", event);
 
       res.status(201).json({
         user: {

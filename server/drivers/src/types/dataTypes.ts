@@ -5,5 +5,5 @@ export interface Driver {
     name: string,
     email: string,
     password: string,
-    doNotDisurb: boolean
+    doNotDisturb: boolean
 }

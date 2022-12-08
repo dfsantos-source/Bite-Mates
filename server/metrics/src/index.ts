@@ -4,6 +4,7 @@ import { initRestaurants, initRestaurantOrders } from './initData';
 import cors from "cors";
 import logger from "morgan";
 import { RestaurantMetrics, UserMetrics, DriverMetrics, Restaurant, User } from './types/dataTypes';
+import axios from 'axios';
 
 
 const app = express();
@@ -108,9 +109,9 @@ async function start() {
     }
 
     if (event.type === "UserCreated") {
-      const { _id, name, address, email, do_not_disturb } = event.data;
+      const { _id, name, address, email, doNotDisturb } = event.data;
 
-      if (_id === undefined || name === undefined || address === undefined || email === undefined) {
+      if (_id == undefined || name == undefined || address == undefined || email == undefined) {
         res.status(400).json({ message: 'event body incomplete' })
       }
       else {
@@ -122,7 +123,7 @@ async function start() {
             name,
             address,
             email,
-            do_not_disturb
+            doNotDisturb
           }
 
           const users = db.collection("users")
@@ -186,6 +187,14 @@ async function start() {
 
   })
 
+
+  const eventSubscriptions = ["UserCreated"];
+  const eventURL = "http://metrics:4005/events"
+
+  await axios.post("http://eventbus:4000/subscribe", {
+    eventTypes: eventSubscriptions,
+    URL: eventURL
+  })
 
 
 
