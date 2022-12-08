@@ -54,11 +54,12 @@ async function start() {
   app.post('/events', async (req: Request, res: Response) => {
     const event = req.body;
     const delivery = event.data;
-    if(event.type === "OrderProccessed"){
+    if(event.type === "OrderProcessed"){
       if(delivery.status === "ordered"){
+        delivery.userId = new ObjectId(delivery.userId);
         const db = mongo.db();
         const deliveries = db.collection("deliveries");
-       await deliveries.insertOne(delivery);
+        await deliveries.insertOne(delivery);
         res.status(201).json({delivery: delivery, message: "Delivery successfully Added"});
       }
       else{
@@ -77,6 +78,7 @@ async function start() {
       axios.post('http://eventbus:4000/events', delivery).catch((err) => {
         console.log(err.message);
       });
+      res.status(201).json({delivery: delivery, message: "Delivery successfully Created"});
     }
     else{
       res.status(400).send({ message: 'Body not complete.' });
@@ -86,13 +88,14 @@ async function start() {
   app.put('/api/delivery/driver/assign', async (req: Request, res: Response) => {
     const body = req.body;
     const db = mongo.db();
-    if(body.deliveryId !== null && body.driverId !== null){
+    if(body._id !== null && body.driverId !== null){
       const deliveries = db.collection("deliveries");
-      const updatedDelivery = await deliveries.findOneAndUpdate({deliveryId: new ObjectId(body.deliveryId)}, {$set: {driverId: new ObjectId(body.driverId), status: "in transit"}}, {returnDocument : "after"});
-      if(updatedDelivery === null){
+      const updatedDeliveryDoc = await deliveries.findOneAndUpdate({_id: new ObjectId(body._id)}, {$set: {driverId: new ObjectId(body.driverId), status: "in transit"}}, {returnDocument : "after"});
+      if(updatedDeliveryDoc === null){
         res.status(404).send({ message: 'Delivery not found.' });
       }
       else{
+        const updatedDelivery = updatedDeliveryDoc.value;
         axios.post('http://eventbus:4000/events', updatedDelivery).catch((err) => {
           console.log(err.message);
         });
@@ -107,13 +110,14 @@ async function start() {
   app.put('/api/delivery/complete', async (req: Request, res: Response) => {
     const body = req.body;
     const db = mongo.db();
-    if(body.deliveryId !== null){
+    if(body._id !== null){
       const deliveries = db.collection("deliveries");
-      const updatedDelivery = await deliveries.findOneAndUpdate({deliveryId: new ObjectId(body.deliveryId)}, {$set: {status: "delivered"}}, {returnDocument : "after"});
-      if(updatedDelivery === null){
+      const updatedDeliveryDoc = await deliveries.findOneAndUpdate({_id: new ObjectId(body._id)}, {$set: {status: "delivered"}}, {returnDocument : "after"});
+      if(updatedDeliveryDoc === null){
         res.status(404).send({ message: 'Delivery not found.' });
       }
       else{
+        const updatedDelivery = updatedDeliveryDoc.value;
         axios.post('http://eventbus:4000/events', updatedDelivery).catch((err) => {
           console.log(err.message);
         });
@@ -124,6 +128,14 @@ async function start() {
       res.status(400).send({ message: 'Body not complete.' });
     }
   });
+
+  const eventSubscriptions = ["OrderProcessed"];
+  const eventURL = "http://deliveries:4001/events"
+
+  await axios.post("http://eventbus:4000/subscribe", {
+    eventTypes: eventSubscriptions,
+    URL: eventURL
+  })
 
   app.listen(port, () => {
     console.log(`Running on ${port}.`);
