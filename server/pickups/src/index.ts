@@ -56,6 +56,7 @@ async function start() {
     const pickup = event.data;
     if(event.type === "OrderProccessed"){
       if(pickup.status === "ordered"){
+        pickup.userId = new ObjectId(pickup.userId);
         const db = mongo.db();
         const pickups = db.collection("pickups");
        await pickups.insertOne(pickup);
@@ -77,6 +78,7 @@ async function start() {
       axios.post('http://eventbus:4000/events', pickup).catch((err) => {
         console.log(err.message);
       });
+      res.status(201).json({pickup: pickup, message: "Pickup successfully Created"});
     }
     else{
       res.status(400).send({ message: 'Body not complete.' });
@@ -86,9 +88,9 @@ async function start() {
   app.put('/api/pickup/ready', async (req: Request, res: Response) => {
     const body = req.body;
     const db = mongo.db();
-    if(body.pickupId !== null){
+    if(body._id !== null){
       const pickups = db.collection("pickups");
-      const updatedPickup = await pickups.findOneAndUpdate({pickupId: new ObjectId(body.pickupId)}, {$set: {status: "ready for pickup"}}, {returnDocument : "after"});
+      const updatedPickup = await pickups.findOneAndUpdate({_id: new ObjectId(body._id)}, {$set: {status: "ready for pickup"}}, {returnDocument : "after"});
       if(updatedPickup === null){
         res.status(404).send({ message: 'Pickup not found.' });
       }
@@ -107,9 +109,9 @@ async function start() {
   app.put('/api/pickup/complete', async (req: Request, res: Response) => {
     const body = req.body;
     const db = mongo.db();
-    if(body.pickupId !== null){
+    if(body._id !== null){
       const pickups = db.collection("pickups");
-      const updatedPickup = await pickups.findOneAndUpdate({pickupId: new ObjectId(body.pickupId)}, {$set: {status: "pickedup"}}, {returnDocument : "after"});
+      const updatedPickup = await pickups.findOneAndUpdate({_id: new ObjectId(body._id)}, {$set: {status: "pickedup"}}, {returnDocument : "after"});
       if(updatedPickup === null){
         res.status(404).send({ message: 'Pickup not found.' });
       }
@@ -124,6 +126,14 @@ async function start() {
       res.status(400).send({ message: 'Body not complete.' });
     }
   });
+
+  const eventSubscriptions = ["OrderProccessed"];
+  const eventURL = "http://deliveries:4001/events"
+
+  await axios.post("http://eventbus:4000/subscribe", {
+    eventTypes: eventSubscriptions,
+    URL: eventURL
+  })
 
   app.listen(port, () => {
     console.log(`Running on ${port}.`);
