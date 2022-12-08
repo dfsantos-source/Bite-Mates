@@ -37,17 +37,17 @@ async function start() {
     if(event.type === "OrderCreated"){
       let curStatus = "ordered";
       try{
-        const walletPromise = await wallets.findOne({userid: new ObjectId(delivery.userid)});
-        if(walletPromise !== null){
-          const wallet = walletPromise.data;
-          if(wallet.balance <= event.totalPrice){
-            await wallets.updateOne({userid: new ObjectId(delivery.userid)}, {$inc: {balance: (-delivery.totalPrice)}});
+        const wallet = await wallets.findOne({userId: new ObjectId(delivery.userId)});
+        if(wallet !== null){
+          if(wallet.balance >= delivery.totalPrice){
+            await wallets.updateOne({userId: new ObjectId(delivery.userId)}, {$inc: {balance: (-delivery.totalPrice)}});
           }
           else{
             curStatus = "rejected";
           }
         }
         else{
+          console.log("ayo what up");
           throw new Error;
         }
       }
@@ -57,12 +57,14 @@ async function start() {
 
       const processedDelivery = {
         type : "OrderProccessed",
-        data : {...delivery, driverid: null, status: curStatus}
+        data : {...delivery, driverId: null, status: curStatus}
       } 
 
-      axios.post('http://eventbus:4000/events', processedDelivery).catch((err) => {
+      await axios.post('http://eventbus:4000/events', processedDelivery).catch((err) => {
         console.log(err.message);
       });
+
+      res.status(200).json({order: processedDelivery , message: 'Order proccessed successfully.' });
     }
   });
 
@@ -106,6 +108,14 @@ async function start() {
       res.status(400).send({ message: 'Userid not found.' });
     }
   });
+
+  const eventSubscriptions = ["OrderCreated"];
+  const eventURL = "http://wallet:4012/events"
+
+  await axios.post("http://eventbus:4000/subscribe", {
+    eventTypes: eventSubscriptions,
+    URL: eventURL
+  })
 
   app.listen(port, () => {
     console.log(`Running on ${port}.`);
