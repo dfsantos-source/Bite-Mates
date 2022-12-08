@@ -92,6 +92,7 @@ services:
       - eventbus
     environment:
       DATABASE_URL: mongodb+srv://Befake:6a4rWhYjq4bReM94@cluster0.kf7533j.mongodb.net/?retryWrites=true&w=majority
+      ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
   wallet:
     build: server/wallet
     ports:
