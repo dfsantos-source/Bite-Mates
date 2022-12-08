@@ -3,8 +3,15 @@ import { MongoClient } from 'mongodb';
 import { initRestaurants } from './initData';
 import { ObjectId } from 'mongodb';
 import { Restaurant, Food } from './types/dataTypes';
+import axios from 'axios';
+import cors from 'cors';
+import logger from 'morgan';
 
 const app = express();
+app.use(express.json());
+app.use(logger('dev'));
+app.use(cors);
+
 const port = 4008;
 
 console.log(process.env.DATABASE_URL);
@@ -73,6 +80,21 @@ async function start() {
 
       await restaurants.insertOne(restaurant);
 
+      //Pushing event to the eventbus
+      await axios.post(`http://eventbus:4000/events`, {
+
+        type: 'RestaurantCreated',
+        data: {
+            restaurantId: _id,
+            name,
+            address,
+            type,
+            foods
+        },
+
+      });
+
+      //Send as response to user
       res.status(201).send({
         message: "Restaurant successfully registered",
         _id,
@@ -102,7 +124,14 @@ async function start() {
     }
     try{
       const db = mongo.db();
-      const foods = db.collection('foods');
+      const restaurants_db = db.collection('restaurants');
+      const restaurant = await restaurants_db.findOne({"_id" : new ObjectId(restaurantId)});
+
+      if (!restaurant) {
+        res.status(404).send({message: "Restaurant not found"});
+        return;
+      }
+
       const _id = new ObjectId();
       const food: Food = {
         _id,
@@ -111,7 +140,10 @@ async function start() {
         restaurantId
       }
 
-      foods.insertOne(food);
+      const {foods}: {foods: Food[]} = restaurant;
+      foods.push(food);
+
+      await restaurants_db.updateOne({"_id" : new ObjectId(restaurantId)}, {$set : {foods: foods}});
 
       res.status(201).send({
         message: "Food successfully registered",
@@ -120,6 +152,19 @@ async function start() {
         price,
         restaurantId
       })
+
+      //Pushing event to the eventbus
+      await axios.post(`http://eventbus:4000/events`, {
+
+        type: 'FoodCreated',
+        data: {
+            FoodId: _id,
+            name,
+            price,
+            restaurantId
+        },
+
+      });
 
     }
     catch (err: any) {

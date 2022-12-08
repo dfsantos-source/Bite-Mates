@@ -36,6 +36,8 @@ services:
       - "4004:4004"
     depends_on:
       - eventbus
+    environment:
+      DATABASE_URL: mongodb+srv://root:<rootpassword>@cluster1.kat5lit.mongodb.net/?retryWrites=true&w=majority
   metrics:
     build: server/metrics
     ports:
@@ -80,6 +82,8 @@ services:
       - "4010:4010"
     depends_on:
       - eventbus
+    environment:
+      DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.g9utvud.mongodb.net/?retryWrites=true&w=majority
   users:
     build: server/users
     ports:
