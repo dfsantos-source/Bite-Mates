@@ -81,7 +81,7 @@ async function start() {
       const driverCreated: DriverCreated = {
         type: 'DriverCreated',
         data: {
-          driverId: _id,
+          _id: _id,
           name,
           email,
           doNotDisturb: false
