@@ -21,7 +21,7 @@ export interface User {
     name: string,
     email: string,
     address: string,
-    do_not_disturb: string
+    doNotDisturb: string
 }
 
 export interface Driver {
