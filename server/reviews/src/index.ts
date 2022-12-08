@@ -2,16 +2,17 @@ import express, { Request, Response } from 'express';
 import { Driver_Review, Restaraunt_Review } from './types/dataTypes';
 import { MongoClient } from 'mongodb';
 import { ObjectId } from 'mongodb';
-import logger from 'morgan';
-
-// REVIEW SERVICE
+import cors from "cors";
+import logger from "morgan";
 
 const app = express();
-
 app.use(express.json());
+app.use(cors());
 app.use(logger('dev'));
 
 const port = 4010;
+
+// REVIEW SERVICE
 
 async function connectDB(): Promise<MongoClient> {
   const uri = process.env.DATABASE_URL;
