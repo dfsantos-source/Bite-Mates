@@ -5,6 +5,9 @@ import { ObjectId } from 'mongodb';
 import { Restaurant, Food } from './types/dataTypes';
 import cors from "cors";
 import logger from "morgan";
+import axios from 'axios';
+import { type } from 'os';
+import { stringify } from 'querystring';
 
 const app = express();
 app.use(cors());
@@ -65,10 +68,6 @@ async function start() {
       return;
     }
 
-    // if(name == undefined || address == undefined || type == undefined){
-    //   return;
-    // }
-
     try{
       const db = mongo.db();
       const restaurants = db.collection('restaurants');
@@ -83,6 +82,13 @@ async function start() {
       }
 
       await restaurants.insertOne(restaurant);
+
+      const restaurantCreated = {
+        type: "RestaurantCreated",
+        data: restaurant
+      }
+
+      await axios.post('http://eventbus:4000/events', restaurantCreated);
 
       res.status(201).send({
         message: "Restaurant successfully registered",
