@@ -2,16 +2,16 @@ import { ObjectId } from "mongodb";
 
 export interface Driver_Review {
     _id: ObjectId,
-    userId: string,
-    driverId: string,
+    userId: ObjectId,
+    driverId: ObjectId,
     content: string,
     rating: number
 }
 
 export interface Restaraunt_Review {
     _id: ObjectId,
-    userId: string,
-    restaurantId: string,
+    userId: ObjectId,
+    restaurantId: ObjectId,
     content: string,
     rating: number
 }

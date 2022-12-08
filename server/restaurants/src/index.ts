@@ -3,8 +3,13 @@ import { MongoClient } from 'mongodb';
 import { initRestaurants } from './initData';
 import { ObjectId } from 'mongodb';
 import { Restaurant, Food } from './types/dataTypes';
+import cors from "cors";
+import logger from "morgan";
 
 const app = express();
+app.use(cors());
+app.use(express.json());
+app.use(logger("dev"));
 const port = 4008;
 
 console.log(process.env.DATABASE_URL);
@@ -51,12 +56,18 @@ async function start() {
 
   //creating restaurant document
   app.post('/api/restaurants/create', async (req: Request, res: Response) =>{
+
+    console.log(req.body);
     const {name, address, type}: {name: string, address: string, type: string} = req.body;
 
     if(name == null || address == null || type == null){
       res.status(400).send({message: "Body not complete"});
       return;
     }
+
+    // if(name == undefined || address == undefined || type == undefined){
+    //   return;
+    // }
 
     try{
       const db = mongo.db();
@@ -102,7 +113,8 @@ async function start() {
     }
     try{
       const db = mongo.db();
-      const foods = db.collection('foods');
+      const restaurants_doc = db.collection('restaurants');
+      const restaurant = await restaurants_doc.findOne({"_id" : new ObjectId(restaurantId)}) as Restaurant;
       const _id = new ObjectId();
       const food: Food = {
         _id,
@@ -111,7 +123,10 @@ async function start() {
         restaurantId
       }
 
-      foods.insertOne(food);
+      const {foods}: {foods: Food[]} = restaurant;
+      foods.push(food);
+
+      await restaurants_doc.updateOne({"_id" : new ObjectId(restaurantId)}, {$set: {"foods": foods}});
 
       res.status(201).send({
         message: "Food successfully registered",
@@ -161,7 +176,7 @@ async function start() {
     try {
       const db = mongo.db();
       const restaurants_doc = db.collection('restaurants');
-      const restaurant = await restaurants_doc.findOne({"_id" : new ObjectId(restaurantId)});
+      const restaurant = await restaurants_doc.findOne({"_id" : new ObjectId(restaurantId)}) as Restaurant;
 
       if (!restaurant) {
         res.status(404).send({message: "Restaurant not found"});
@@ -200,7 +215,7 @@ async function start() {
     try{
       const db = mongo.db();
       const restaurants_doc = db.collection('restaurants');
-      const restaurant = await restaurants_doc.findOne({"_id" : new ObjectId(restaurantId)});
+      const restaurant = await restaurants_doc.findOne({"_id" : new ObjectId(restaurantId)}) as Restaurant;
 
       if (!restaurant) {
         res.status(404).send({message: "Restaurant not found"});
