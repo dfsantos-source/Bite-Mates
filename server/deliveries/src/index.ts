@@ -72,7 +72,7 @@ async function start() {
     if(body.userId !== null && body.time !== null && body.foods !== null && body.totalPrice !== null){
       const delivery = {
         type : "OrderCreated",
-        data : body
+        data : {...body, type: "delivery"}
       }
       axios.post('http://eventbus:4000/events', delivery).catch((err) => {
         console.log(err.message);
