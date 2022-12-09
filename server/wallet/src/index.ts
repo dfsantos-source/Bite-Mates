@@ -79,10 +79,16 @@ async function start() {
       else{
         const updatedWallet = await wallets.findOneAndUpdate({userId: new ObjectId(body.userId)}, {$inc: {balance: body.balance}}, {returnDocument : "after"});
         console.log(updatedWallet);
+
+        const updatedWalletEvent = {
+          type: "MoneyAdded",
+          data: updatedWallet
+        }
+
         axios.post('http://eventbus:4000/events', updatedWallet).catch((err) => {
           console.log(err.message);
         });
-        res.status(200).json({wallet: updatedWallet, message: 'Balance successfully added.' });
+        res.status(200).json({wallet: updatedWalletEvent, message: 'Balance successfully added.' });
       }
     }
     else{
