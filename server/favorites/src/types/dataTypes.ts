@@ -25,5 +25,6 @@ export interface User{
     _id: ObjectId,
     name: string,
     address: string,
-    email: string
+    email: string,
+    doNotDisturb: boolean
 }

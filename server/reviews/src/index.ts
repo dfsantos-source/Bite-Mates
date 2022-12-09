@@ -4,6 +4,7 @@ import { MongoClient } from 'mongodb';
 import { ObjectId } from 'mongodb';
 import cors from "cors";
 import logger from "morgan";
+import axios from 'axios';
 
 const app = express();
 app.use(express.json());
@@ -45,7 +46,7 @@ async function start() {
         const db = mongo.db();
         const drivers_db = db.collection('drivers');
         const driver: Driver = {
-          _id,
+          _id: new ObjectId(_id),
           name,
           email,
           doNotDisturb,
@@ -53,8 +54,8 @@ async function start() {
   
         await drivers_db.insertOne(driver);
         res.status(200).send({"message": "driver successfully created"});
-        return;
-        
+        return;  
+
       }
       catch (err: any) {
         res.status(500).send({error: err.message});
@@ -62,44 +63,50 @@ async function start() {
     }
 
     //listening for RestaurantCreated
-    if(type == "RestaurantCreated"){
+    if(type === "RestaurantCreated"){
 
-      const {_id, name, address, type, foods}: {_id: ObjectId, name: string, address: string, type: string, foods: Food[]} = data;
       try{
+        const {_id, name, address, type, foods} = data;
         const db = mongo.db();
-        const restaurants_db = db.collection('restaurants');
+        const restaurants = db.collection('restaurants');
+  
         const restaurant: Restaurant = {
-          _id,
+          _id: new ObjectId(_id),
           name,
           address,
           type,
           foods
         }
-  
-        await restaurants_db.insertOne(restaurant);
-        res.status(200).send({"message": "restaurant successfully created"});
+
+        await restaurants.insertOne(restaurant);
+        res.status(201).send({"message": "Restaurant Created"});
         return;
       }
       catch (err: any) {
         res.status(500).send({error: err.message});
       }
+
     }
 
     //listening for UserCreated
-    if(type == "UserCreated"){
-      const {_id, name, email, address, doNotDisturb}: {_id: ObjectId, name: string, email: string, address: string, doNotDisturb: boolean} = data;
+    if(type === "UserCreated"){
+
+      const {_id, name, address, email, doNotDisturb}: {_id: ObjectId, name: string, address: string, email: string, doNotDisturb: boolean} = data;
+      const db = mongo.db();
+
       try{
-        const db = mongo.db();
-        const users_db = db.collection('users');
+        //adding user to users collection
+        const users = db.collection('users');
         const user: User = {
-          _id,
+          _id: new ObjectId(_id),
           name,
-          email,
           address,
+          email,
           doNotDisturb
-        }
-        await users_db.insertOne(user);
-        res.status(200).send({"message": "User successfully created"});
+        };
+
+        await users.insertOne(user);
+        res.status(201).send({"message": "User Created"});
         return;
       }
       catch (err: any) {
@@ -111,6 +118,7 @@ async function start() {
   //CREATING NEW REVIEW FOR DRIVERID
   app.post('/api/reviews/driver/create', async (req: Request, res: Response) => {
     const { userId, driverId, content, rating} : {userId: ObjectId, driverId: ObjectId, content: string, rating: number} = req.body;
+
     if(userId == null || driverId == null || content == null || rating == null){
       res.status(400).send({message: "Body not complete"});
       return;
@@ -118,7 +126,7 @@ async function start() {
     try{
       const db = mongo.db();
 
-      //checking is driverId is valud
+      //checking is driverId is valid
       const drivers = db.collection('drivers');
       const driver = drivers.findOne({_id: new ObjectId(driverId)});
       if(!driver){
@@ -126,16 +134,31 @@ async function start() {
         return;
       }
 
+      //checking is userId is valid
+      const users = db.collection('users');
+      const user = users.findOne({_id: new ObjectId(userId)});
+      if(!user){
+        res.status(404).send({message: "User does not exist"});
+        return;
+      }
+
       const reviews = db.collection('driver_reviews');
       const _id = new ObjectId();
       const review: Driver_Review = {
         _id,
-        userId,
-        driverId,
+        userId: new ObjectId(userId),
+        driverId: new ObjectId(driverId),
         content,
         rating
       }
       await reviews.insertOne(review);
+
+      const DriverReviewCreated = {
+        type: "DriverReviewCreated",
+        data: review
+      }
+
+      await axios.post('http://eventbus:4000/events', DriverReviewCreated);
 
       res.status(201).send({
         message: "Review successfully registered",
@@ -175,13 +198,20 @@ async function start() {
       const _id = new ObjectId();
       const review: Restaraunt_Review = {
         _id,
-        userId,
-        restaurantId,
+        userId: new ObjectId(userId),
+        restaurantId: new ObjectId(userId),
         content,
         rating
       };
       
       await reviews.insertOne(review);
+
+      const RestaurantReviewCreated = {
+        type: "RestaurantReviewCreated",
+        data: review
+      }
+
+      await axios.post('http://eventbus:4000/events', RestaurantReviewCreated);
 
       res.status(201).send({
         message: "Review successfully registered",
@@ -200,7 +230,7 @@ async function start() {
   });
 
   //GETTING REVIEWS BASED ON DRIVERID
-  app.get('api/reviews/driver/get/:driverId', async (req: Request, res: Response) => {
+  app.get('/api/reviews/driver/get/:driverId', async (req: Request, res: Response) => {
     const { driverId } = req.params;
 
     if (driverId == null) {
@@ -233,7 +263,7 @@ async function start() {
   });
 
   //GETTING REVIEWS BASED ON RESTAURANTID
-  app.get('api/reviews/restaurant/get/:restaurantId', async (req: Request, res: Response) => {
+  app.get('/api/reviews/restaurant/get/:restaurantId', async (req: Request, res: Response) => {
     const { restaurantId } = req.params;
 
     if (restaurantId == null) {
@@ -271,3 +301,35 @@ async function start() {
 }
 
 start();
+
+// {
+//   "type": "UserCreated",
+//   "data":{
+//     "_id": "eac6131b4f5d34caa897ed35",
+//     "name": "nolan",
+//     "address": "37 bruh street, italy",
+//     "email": "nolaniscool@gmail.com",
+//     "doNotDisturb": "false" 
+//   }
+// }
+
+// {
+//   "type": "RestaurantCreated",
+//   "data":{
+//    "_id": "b95ac011e6d852a59f7a4ebf",
+//    "name": "Mama mias",
+//    "address": "37 bruh street, italy",
+//    "type": "Italian",
+//    "foods": []         
+//   }
+// }
+
+// {
+//   "type": "DriverCreated",
+//   "data":{
+//    "_id": "ea82d6bc3bffbba733efe09f",
+//    "name": "Kyle",
+//    "email": "bruhmoma@gmail.com"
+//    "doNotDisturb": "false"     
+//   }
+// }

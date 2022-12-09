@@ -47,7 +47,7 @@ async function start(){
     //if a user is created, 
     if(type === "UserCreated"){
 
-      const {userId, name, address, email} = data;
+      const {userId, name, address, email, doNotDisturb} = data;
       const _id = new ObjectId();
       const restaurant_list: Restaurant[] = [];
       const db = mongo.db();
@@ -67,8 +67,10 @@ async function start(){
         _id: new ObjectId(userId),
         name,
         address,
-        email
+        email,
+        doNotDisturb
       }
+      
       await users.insertOne(user);
 
       res.status(201).send({"message": "User Created"});
