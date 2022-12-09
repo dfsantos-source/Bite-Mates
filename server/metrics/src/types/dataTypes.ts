@@ -25,11 +25,14 @@ export interface User {
 }
 
 export interface Driver {
-
+    _id: ObjectId,
+    name: string,
+    email: string,
+    doNotDisturb: boolean
 }
 
 export interface RestaurantMetrics {
-    _id?: ObjectId,
+    _id: ObjectId,
     restaurantId: ObjectId,
     numOrders: number
     totalRevenue: number

@@ -4,7 +4,8 @@ import { MongoClient } from 'mongodb';
 import { initRestaurants } from './initData';
 import cors from "cors";
 import logger from "morgan";
-import { RestaurantComment, DriverComment, RestaurantCommentData, DriverCommentData, User, Restaurant, RestaurantReview, DriverReview } from './types/dataTypes';
+import axios from "axios"
+import { RestaurantComment, DriverComment, RestaurantCommentData, DriverCommentData, User, Restaurant, RestaurantReview, DriverReview, Driver } from './types/dataTypes';
 
 const app = express();
 app.use(cors());
@@ -234,9 +235,9 @@ async function start() {
             foods
           }
 
-          const users = db.collection("restaurants")
+          const restaurants = db.collection("restaurants")
 
-          const result = await users.insertOne(newRestaurant)
+          const result = await restaurants.insertOne(newRestaurant)
 
           res.status(200).json(newRestaurant)
 
@@ -246,18 +247,109 @@ async function start() {
       }
     }
 
+    if (event.type === "DriverCreated") {
+      const { _id, name, email, doNotDisturb } = event.data;
+
+      if (_id === undefined || name === undefined || email === undefined || doNotDisturb === undefined) {
+        res.status(400).json({ message: 'event body incomplete' })
+      }
+      else {
+        try {
+          const db = mongo.db()
+
+          const newDriver: Driver = {
+            _id,
+            name,
+            email,
+            doNotDisturb,
+          }
+
+          const drivers = db.collection("drivvers")
+
+          const result = await drivers.insertOne(newDriver)
+
+          res.status(200).json(newDriver)
+
+        } catch (error) {
+          res.status(500).json(error)
+        }
+      }
+    }
+
+
+
     if (event.type === "RestaurantReviewCreated") {
+      const { _id, userId, restaurantId, content, rating } = event.data;
+
+      if (_id === undefined || userId === undefined || restaurantId === undefined || content === undefined || rating === undefined) {
+        res.status(400).json({ message: "incomplete body" });
+      }
+      else {
+        try {
+          const db = mongo.db();
+
+          const restaurantReviewDb = db.collection("restaurantReviews");
+
+          const newRestaurantReview: RestaurantReview = {
+            _id,
+            userId,
+            restaurantId,
+            content,
+            rating
+          }
+
+          await restaurantReviewDb.insertOne(newRestaurantReview)
+
+          res.status(201).json(newRestaurantReview);
+
+        } catch (error) {
+          res.status(500).json(error)
+        }
+      }
 
     }
 
     if (event.type === "DriverReviewCreated") {
+      const { _id, userId, driverId, content, rating } = event.data;
+
+      if (_id === undefined || userId === undefined || driverId === undefined || content === undefined || rating === undefined) {
+        res.status(400).json({ message: "incomplete body" });
+      }
+      else {
+        try {
+          const db = mongo.db();
+
+          const driverReviewDb = db.collection("driverReviews");
+
+          const newDriverReview: DriverReview = {
+            _id,
+            userId,
+            driverId,
+            content,
+            rating
+          }
+
+          await driverReviewDb.insertOne(newDriverReview)
+
+          res.status(201).json(newDriverReview);
+
+        } catch (error) {
+          res.status(500).json(error)
+        }
+      }
 
     }
 
   })
 
 
+  const eventSubscriptions = ["UserCreated", "RestaurantCreated", "DriverCreated", "RestaurantReviewCreated", "DriverReviewCreated"];
+  const eventURL = "http://review-comments:4009/events"
 
+  await axios.post("http://eventbus:4000/subscribe", {
+    eventTypes: eventSubscriptions,
+    URL: eventURL
+  })
 
 
   app.listen(port, () => {

@@ -3,7 +3,7 @@ import { MongoClient, ObjectId } from 'mongodb';
 import { initRestaurants, initRestaurantOrders } from './initData';
 import cors from "cors";
 import logger from "morgan";
-import { RestaurantMetrics, UserMetrics, DriverMetrics, Restaurant, User } from './types/dataTypes';
+import { RestaurantMetrics, UserMetrics, DriverMetrics, Restaurant, User, Driver } from './types/dataTypes';
 import axios from 'axios';
 
 
@@ -43,11 +43,11 @@ async function initDB(mongo: MongoClient) {
     }
   }
 
-  if (await db.listCollections({ name: 'restaurantOrders' }).hasNext()) {
+  if (await db.listCollections({ name: 'restaurantMetrics' }).hasNext()) {
     console.log("Collection already exists. Skipping initialization.")
   }
   else {
-    const restaurantOrders = db.collection("restaurantOrders");
+    const restaurantOrders = db.collection("restaurantMetrics");
 
     const res = await restaurantOrders.insertMany(initRestaurantOrders)
 
@@ -102,10 +102,59 @@ async function start() {
   app.post("/events", async (req: Request, res: Response) => {
     const event = req.body;
     if (event.type === "OrderProcessed") {
-      const data = event.data
 
-      const userId = data.userId;
-      const restaurantId = data.restaurantId;
+      const { userId, foods, totalPrice, status } = event.data
+
+      if (userId === undefined || foods === undefined || totalPrice === undefined || status === undefined) {
+        res.status(400).json({ message: "missing body" })
+      }
+      else {
+        try {
+          if (status === "ordered") {
+            const db = mongo.db();
+            const userMetricsDb = db.collection("userMetrics");
+            const restaurantMetricsDb = db.collection("restaurantMetrics")
+
+            await userMetricsDb.updateOne({ userId: new ObjectId(userId) }, { $inc: { numOrders: 1, totalPrice: totalPrice } });
+            await restaurantMetricsDb.updateOne({ restaurantId: new ObjectId(foods[0].restaurantId) }, { $inc: { numOrders: 1, totalRevenue: totalPrice } });
+            res.status(200).json({ message: "updated user and restaurant metrics" })
+            return;
+          }
+          else {
+            res.status(200).json({ message: "order was rejected" });
+          }
+        } catch (error) {
+          res.status(500).json(error)
+          return;
+        }
+      }
+
+    }
+
+    if (event.type === "OrderCompleted") {
+      const { type } = event.data;
+
+      if (type === undefined) {
+        res.status(400).json({ message: "body incomplete" })
+      }
+      else {
+        if (type === "delivery") {
+          try {
+            const { driverId } = event.data
+            const db = mongo.db();
+
+            const driverMetricDb = db.collection("driverMetrics")
+
+            await driverMetricDb.updateOne({ driverId: driverId }, { $inc: { numDeliveries: 1 } })
+
+            res.status(200).json({ message: "updated driver metrics" });
+            return;
+          } catch (error) {
+            res.status(500).json({ message: error })
+          }
+        }
+        res.status(200).json({ message: "order was a pickup" });
+      }
     }
 
     if (event.type === "UserCreated") {
@@ -119,16 +168,27 @@ async function start() {
           const db = mongo.db()
 
           const newUser: User = {
-            _id,
+            _id: new ObjectId(_id),
             name,
             address,
             email,
             doNotDisturb
           }
 
+          const newUserMetric: UserMetrics = {
+            _id: new ObjectId(),
+            userId: new ObjectId(_id),
+            numOrders: 0,
+            totalPrice: 0
+          }
+
+
+
           const users = db.collection("users")
+          const userMetricsDb = db.collection("userMetrics")
 
           const result = await users.insertOne(newUser)
+          const metricResult = await userMetricsDb.insertOne(newUserMetric);
 
           res.status(200).json(newUser)
           return;
@@ -151,16 +211,30 @@ async function start() {
           const db = mongo.db()
 
           const newRestaurant: Restaurant = {
-            _id,
+            _id: new ObjectId(_id),
             name,
             address,
             type,
             foods
           }
 
-          const users = db.collection("restaurants")
+          const newRestaurantMetric: RestaurantMetrics = {
+            _id: new ObjectId(),
+            restaurantId: new ObjectId(_id),
+            numOrders: 0,
+            totalRevenue: 0,
+            numReviews: 0,
+            totalRating: 0,
+            averageRating: 0
+          }
 
-          const result = await users.insertOne(newRestaurant)
+          const restaurantsDb = db.collection("restaurants")
+
+          const restaurantMetricDb = db.collection("restaurantMetrics")
+
+          const result = await restaurantsDb.insertOne(newRestaurant)
+
+          const metricsResult = await restaurantMetricDb.insertOne(newRestaurantMetric)
 
           res.status(200).json(newRestaurant)
 
@@ -172,14 +246,122 @@ async function start() {
     }
 
     if (event.type === "DriverCreated") {
+      const event = req.body;
+      const { _id, name, email, doNotDisturb } = event.data;
 
+      if (_id === undefined || name === undefined || email === undefined) {
+        res.status(400).json({ message: "body incomplete" });
+        return;
+      }
+      else {
+        try {
+          const db = mongo.db();
+
+          const driversDb = db.collection("drivers");
+          const driverMetricsDb = db.collection("driverMetrics")
+
+          const newDriver: Driver = {
+            _id: new ObjectId(_id),
+            name: name,
+            email: email,
+            doNotDisturb: doNotDisturb
+          }
+
+          const newDriverMetric: DriverMetrics = {
+            _id: new ObjectId,
+            driverId: new ObjectId(_id),
+            numDeliveries: 0,
+            numReviews: 0,
+            totalRating: 0,
+            averageRating: 0
+          }
+
+          const result = await driversDb.insertOne(newDriver);
+          const metricResult = await driverMetricsDb.insertOne(newDriverMetric);
+
+          res.status(201).json(newDriver);
+          return;
+
+        } catch (error) {
+          res.status(500).json(error)
+          return;
+        }
+      }
     }
 
     if (event.type === "RestaurantReviewCreated") {
+      const event = req.body;
+      const { restaurantId, rating } = event.data;
+
+      if (restaurantId === undefined || rating === undefined) {
+        res.status(400).json({ message: "body incomplete" });
+        return;
+      }
+      else {
+        try {
+          const db = mongo.db();
+
+          const restaurantMetricsDb = db.collection("restaurantMetrics");
+
+          const restaurantMetric = await restaurantMetricsDb.findOne({ restaurantId: new ObjectId(restaurantId) }) as RestaurantMetrics
+
+          if (restaurantMetric === null) {
+            res.status(404).json({ message: "restaurant not found" })
+            return;
+          }
+
+          restaurantMetric.numReviews = restaurantMetric.numReviews + 1;
+          restaurantMetric.totalRating = restaurantMetric.totalRating + rating;
+          restaurantMetric.averageRating = restaurantMetric.totalRating / restaurantMetric.numReviews
+
+          const updateResult = await restaurantMetricsDb.updateOne({ restaurantId: restaurantId }, { $set: { numReviews: restaurantMetric.numReviews, totalRating: restaurantMetric.totalRating, averageRating: restaurantMetric.averageRating } })
+
+          res.status(200).json({ message: "restaurant metrics updated" });
+          return;
+
+        } catch (error) {
+          res.status(500).json(error)
+          return;
+        }
+      }
 
     }
 
     if (event.type === "DriverReviewCreated") {
+      const event = req.body;
+      const { driverId, rating } = event.data;
+
+      if (driverId === undefined || rating === undefined) {
+        res.status(400).json({ message: "body incomplete" });
+        return;
+      }
+      else {
+        try {
+          const db = mongo.db();
+
+          const driverMetricsDb = db.collection("driverMetrics");
+
+          const driverMetric = await driverMetricsDb.findOne({ restaurantId: new ObjectId(driverId) }) as RestaurantMetrics
+
+          if (driverMetric === null) {
+            res.status(404).json({ message: "driver not found" })
+            return;
+          }
+
+          driverMetric.numReviews = driverMetric.numReviews + 1;
+          driverMetric.totalRating = driverMetric.totalRating + rating;
+          driverMetric.averageRating = driverMetric.totalRating / driverMetric.numReviews
+
+          const updateResult = await driverMetricsDb.updateOne({ restaurantId: driverId }, { $set: { numReviews: driverMetric.numReviews, totalRating: driverMetric.totalRating, averageRating: driverMetric.averageRating } })
+
+          res.status(200).json({ message: "restaurant metrics updated" });
+          return;
+
+        } catch (error) {
+          res.status(500).json(error)
+          return;
+        }
+      }
 
     }
 
@@ -188,7 +370,7 @@ async function start() {
   })
 
 
-  const eventSubscriptions = ["UserCreated"];
+  const eventSubscriptions = ["UserCreated", "RestaurantCreated", "DriverCreated", "RestaurantReviewCreated", "DriverReviewCreated", "OrderCompleted", "OrderProcessed"];
   const eventURL = "http://metrics:4005/events"
 
   await axios.post("http://eventbus:4000/subscribe", {

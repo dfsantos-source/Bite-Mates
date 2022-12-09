@@ -56,6 +56,13 @@ export interface User {
     do_not_disturb: boolean
 }
 
+export interface Driver {
+    _id: ObjectId,
+    name: string,
+    email: string,
+    doNotDisturb: boolean
+}
+
 export interface DriverReview {
     _id: ObjectId,
     userId: ObjectId,
