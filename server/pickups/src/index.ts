@@ -95,8 +95,10 @@ async function start() {
         res.status(404).send({ message: 'Pickup not found.' });
       }
       else{
-        const updatedPickup = updatedPickupDoc.value;
-        updatedPickup.type = "OrderReady";
+        const updatedPickup = {
+          type : "OrderReady",
+          data : {...updatedPickupDoc.value}
+        }
         axios.post('http://eventbus:4000/events', updatedPickup).catch((err) => {
           console.log(err.message);
         });
@@ -118,8 +120,10 @@ async function start() {
         res.status(404).send({ message: 'Pickup not found.' });
       }
       else{
-        const updatedPickup = updatedPickupDoc.value;
-        updatedPickup.type = "OrderCompleted";
+        const updatedPickup = {
+          type : "OrderCompleted",
+          data : {...updatedPickupDoc.value}
+        }
         axios.post('http://eventbus:4000/events', updatedPickup).catch((err) => {
           console.log(err.message);
         });
