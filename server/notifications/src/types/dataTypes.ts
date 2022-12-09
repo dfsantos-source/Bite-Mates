@@ -32,3 +32,18 @@ export interface DriverNotification {
 export type TYPE_TO_MESSAGE_MAP = {
     [key: string]: string
 }
+
+export interface Food {
+    _id: ObjectId,
+    name: string,
+    price: number,
+    restaurantId: ObjectId
+}
+
+export interface Restaurant {
+    _id: ObjectId,
+    name: string,
+    address: string,
+    type: string,
+    foods: Food[]
+}

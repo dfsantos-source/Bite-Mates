@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { UserNotification, DriverNotification, TYPE_TO_MESSAGE_MAP, Driver, User } from './types/dataTypes';
+import { UserNotification, DriverNotification, TYPE_TO_MESSAGE_MAP, Driver, User, Restaurant } from './types/dataTypes';
 import { Collection, Db, Document, MongoClient, WithId } from 'mongodb';
 import { ObjectId } from 'mongodb';
 import logger from 'morgan';
@@ -23,7 +23,7 @@ const MESSAGE_MAP: TYPE_TO_MESSAGE_MAP = {
   payment_success: `Your payment has been received, thank you for ordering from BeFake!`,
   delivery_success: `Your food has arrived at your residential area! Enjoy!`,
   pickup_success: `You have successfully picked up your food! Enjoy!`,
-  wallet_success: `You have successfully added money to your account!`,
+  wallet_success: `Your account balance has been updated!`,
   delivery_assigned_success: `A delivery has been assigned to you!`
 };
 
@@ -51,7 +51,7 @@ async function hasDoNotDisturb(mongo: MongoClient, type: string, id: string): Pr
       return false;
     }
 
-    return res.value.doNotDisturb;
+    return res.doNotDisturb;
   } catch (err: any) {
     return false;
   }
@@ -221,6 +221,32 @@ async function start() {
       }
     }
 
+    if (type === 'RestaurantCreated') {
+      const { data } = req.body;
+      const { _id, name, address, type, foods } = data;
+      if (_id == undefined || name == undefined || address == undefined || type == undefined || foods == undefined) {
+        res.status(400).json({ message: 'Event data incomplete' })
+        return;
+      }
+      try {
+        const db = mongo.db()
+        const newRestaurant: Restaurant = {
+          _id,
+          name,
+          address,
+          type,
+          foods
+        }
+        const restaurants = db.collection("restaurants")
+        await restaurants.insertOne(newRestaurant)
+        res.status(200).send({message: "Successfully handled RestaurantCreated event inside Cart service"});
+        return;
+      } catch (error) {
+        res.status(500).json(error)
+        return;
+      }
+    }
+
     // send a notification to the user that their order was placed,
     // this could either be a pickup or delivery
     if (type === 'OrderCreated') {
@@ -230,7 +256,8 @@ async function start() {
       const doNotDisturb: boolean = await hasDoNotDisturb(mongo, 'user', userId);
       if (!doNotDisturb) {
         const notificationMessage: string = `Your ${orderType} order has been placed!`
-        await axios.post(`http://drivers:4006/api/notification/user/create`, {
+        // TODO: authenticate the endpoint and do this differently
+        await axios.post(`http://notifications:4006/api/notification/user/create`, {
           userId,
           notificationMessage
         }); 
@@ -250,13 +277,13 @@ async function start() {
       if (!doNotDisturb) {
         const status: string = data.status;
         const notificationMessage: string = status === "rejected" ? MESSAGE_MAP.payment_failure : MESSAGE_MAP.payment_success;
-        await axios.post(`http://drivers:4006/api/notification/user/create`, {
+        await axios.post(`http://notifications:4006/api/notification/user/create`, {
           userId,
           notificationMessage
         });
         if (status === "ordered") { 
           const notificationMessage: string = orderType === "delivery" ? MESSAGE_MAP.delivery_success :  MESSAGE_MAP.pickup_success;
-          await axios.post(`http://drivers:4006/api/notification/user/create`, {
+          await axios.post(`http://notifications:4006/api/notification/user/create`, {
             userId,
             notificationMessage
           });
@@ -264,14 +291,14 @@ async function start() {
       }
     }
 
-    // send a notification to the user that money was added to their account
+    // send a notification to the user that their balance has been updated
     if (type === 'MoneyAdded') {
       const { data } = req.body;
-      const { userId, amount }: {userId: string, amount: number} = data;
+      const { userId, balance }: {userId: string, balance: number} = data;
       const doNotDisturb: boolean = await hasDoNotDisturb(mongo, 'user', userId);
       if (!doNotDisturb) {
-        const notificationMessage: string = MESSAGE_MAP.wallet_success + `The amount added was: ${amount}`;
-        await axios.post(`http://drivers:4006/api/notification/user/create`, {
+        const notificationMessage: string = MESSAGE_MAP.wallet_success + ` Your current balance is: ${balance}`;
+        await axios.post(`http://notifications:4006/api/notification/user/create`, {
           userId,
           notificationMessage
         }); 
@@ -286,7 +313,7 @@ async function start() {
       const doNotDisturb: boolean = await hasDoNotDisturb(mongo, 'driver', driverId);
       if (!doNotDisturb) {
         const notificationMessage: string = MESSAGE_MAP.delivery_assigned_success;
-        await axios.post(`http://drivers:4006/api/notification/user/create`, {
+        await axios.post(`http://notifications:4006/api/notification/driver/create`, {
           driverId,
           notificationMessage
         }); 
@@ -296,6 +323,14 @@ async function start() {
     res.send({ message: 'ok' });
     return;
   });
+
+  const eventSubscriptions = ["UserCreated", "DriverCreated", "MoneyAdded", "DeliveryAssigned", "OrderProcessed", "RestaurantCreated"];
+  const eventURL = "http://notifications:4006/events"
+
+  await axios.post("http://eventbus:4000/subscribe", {
+    eventTypes: eventSubscriptions,
+    URL: eventURL
+  })
 
   app.get('/', (req: Request, res: Response) => {
     res.send({ message: 'ok' });
