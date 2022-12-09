@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { UserNotification, DriverNotification, TYPE_TO_MESSAGE_MAP, Driver, User, Restaurant } from './types/dataTypes';
-import { Collection, Db, Document, MongoClient, WithId } from 'mongodb';
+import { Collection, Db, Document, FindCursor, MongoClient, WithId } from 'mongodb';
 import { ObjectId } from 'mongodb';
 import logger from 'morgan';
 import axios from 'axios';
@@ -59,6 +59,56 @@ async function hasDoNotDisturb(mongo: MongoClient, type: string, id: string): Pr
 
 async function start() {
   const mongo = await connectDB();
+
+  // TODO: authorize it
+  app.get('/api/notification/user/get', async (req: Request, res: Response) => {
+    const { userId }: { userId: string } = req.body;
+    if (userId == null) {
+      res.status(400).send({message: "Body not complete"});
+      return;
+    }
+    if (!ObjectId.isValid(userId)) {
+      res.status(400).send({message: "Id is not a valid mongo ObjectId"});
+      return;
+    }
+    try {
+      const db: Db = mongo.db();
+      const notifications: Collection<Document> = db.collection('user-notifications');
+      const cursor: FindCursor<WithId<Document>> = await notifications.find({"userId" : new ObjectId(userId)})
+      const userNotifications: WithId<Document>[] = [];
+      await cursor.forEach(doc => {
+        userNotifications.push(doc);
+      });
+      return res.status(200).send(userNotifications);
+    } catch (err: any) {
+      res.status(500).send({error: err.message});
+    }
+  });
+
+  // TODO: authorize it
+  app.get('/api/notification/driver/get', async (req: Request, res: Response) => {
+    const { driverId }: { driverId: string } = req.body;
+    if (driverId== null) {
+      res.status(400).send({message: "Body not complete"});
+      return;
+    }
+    if (!ObjectId.isValid(driverId)) {
+      res.status(400).send({message: "Id is not a valid mongo ObjectId"});
+      return;
+    }
+    try {
+      const db: Db = mongo.db();
+      const notifications: Collection<Document> = db.collection('driver-notifications');
+      const cursor: FindCursor<WithId<Document>> = await notifications.find({"driverId" : new ObjectId(driverId)})
+      const driverNotifications: WithId<Document>[] = [];
+      await cursor.forEach(doc => {
+        driverNotifications.push(doc);
+      });
+      return res.status(200).send(driverNotifications);
+    } catch (err: any) {
+      res.status(500).send({error: err.message});
+    }
+  });
 
   app.post('/api/notification/user/create', async (req: Request, res: Response) => {
     const { userId, notificationMessage }: {userId: string, notificationMessage: string} = req.body;

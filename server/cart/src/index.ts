@@ -44,64 +44,113 @@ async function initDB(mongo: MongoClient) {
   const result = await products.insertMany(initRestaurants);
 }
 
+async function createCartDB(mongo: MongoClient, req: Request, res: Response): Promise<Cart | undefined> {
+  const { userId }: { userId: string } = req.body;
+  if (userId == null) {
+    res.status(400).send({message: "Body not complete"});
+    return;
+  }
+  if (!ObjectId.isValid(userId)) {
+    res.status(400).send({message: "Id is not a valid mongo ObjectId"});
+    return;
+  }
+  const db: Db = mongo.db();
+  const carts: Collection<Document> = db.collection('carts');
+  const _id: ObjectId = new ObjectId();
+  const cart: Cart = {
+    _id,
+    userId: new ObjectId(userId),
+    items: []
+  }
+  try {
+    await carts.insertOne(cart);
+    return cart;  
+  } catch (err: any) {
+    res.status(500).send({error: err.message});
+    return;
+  }
+}
+
+async function removeFoodDB(mongo: MongoClient, req: Request, res: Response): Promise<WithId<Document> | null | undefined> {
+  const cartId = req.params['cartId'];
+  const foodId = req.params['foodId'];
+  if (cartId == null || foodId == null) {
+    res.status(400).send({message: "Body not complete"});
+    return;
+  }
+  if (!ObjectId.isValid(cartId) || !ObjectId.isValid(foodId)) {
+    res.status(400).send({message: "Id is not a valid mongo ObjectId"});
+    return;
+  }
+  const db: Db = mongo.db();
+  const carts: Collection<Document> = db.collection('carts');
+  try {
+    const cartDB: WithId<Document> | null = await carts.findOne({"_id" : new ObjectId(cartId)});
+    if (!cartDB) {
+      res.status(400).send({message: "Cart not found"});
+      return;
+    }
+    const items: CartItem[] = cartDB.items;
+    const updatedItems: CartItem[] = items.filter((item: CartItem): boolean => {
+      return item.foodId.toString() !== foodId.toLowerCase();
+    });
+    if (!(updatedItems.length < items.length)) {
+      res.status(400).send({message: "Food not found"});
+      return;
+    }
+    const updatedCart = await carts.findOneAndUpdate({"_id" : new ObjectId(cartId)}, { $set: { "items" : updatedItems } }, {returnDocument: "after"});
+    return updatedCart.value;
+  } catch (err: any) {
+    res.status(500).send({error: err.message});
+    return;
+  }
+}
+
+async function getCartDB(mongo: MongoClient, req: Request, res: Response): Promise<WithId<Document> | undefined> {
+  const userId: string = req.params['userId'];
+  if (userId == null) {
+    res.status(400).send({message: "Body not complete"});
+    return;
+  }
+  if (!ObjectId.isValid(userId)) {
+    res.status(400).send({message: "Id is not a valid mongo ObjectId"});
+    return;
+  }
+  const db: Db = mongo.db();
+  const carts: Collection<Document> = db.collection('carts');
+  try {
+    const cart: WithId<Document> | null = await carts.findOne({"userId" : new ObjectId(userId)});
+    if (!cart) {
+      res.status(404).send({message: `Cart not found`});
+      return;
+    }
+    return cart;
+    return;
+  } catch(err: any) {
+    res.status(500).send({error: err.message});
+    return;
+  }
+}
+
 async function start() {
   const mongo = await connectDB();
 
   await initDB(mongo);
 
   app.post('/api/cart/create', async (req: Request, res: Response) => {
-    const { userId }: { userId: string } = req.body;
-    if (userId == null) {
-      res.status(400).send({message: "Body not complete"});
-      return;
-    }
-    if (!ObjectId.isValid(userId)) {
-      res.status(400).send({message: "Id is not a valid mongo ObjectId"});
-      return;
-    }
-    const db: Db = mongo.db();
-    const carts: Collection<Document> = db.collection('carts');
-    const _id: ObjectId = new ObjectId();
-    const cart: Cart = {
-      _id,
-      userId: new ObjectId(userId),
-      items: []
-    }
-    try {
-      await carts.insertOne(cart);
-      res.status(201).send(cart);      
-    } catch (err: any) {
-      res.status(500).send({error: err.message});
-      return;
-    }
+    const cart = await createCartDB(mongo, req, res);
+    res.status(200).send(cart);
+    return;
   });
 
+  // TODO: auth needed
   app.get('/api/cart/get/:userId', async (req: Request, res: Response) => {
-    const userId: string = req.params['userId'];
-    if (userId == null) {
-      res.status(400).send({message: "Body not complete"});
-      return;
-    }
-    if (!ObjectId.isValid(userId)) {
-      res.status(400).send({message: "Id is not a valid mongo ObjectId"});
-      return;
-    }
-    const db: Db = mongo.db();
-    const carts: Collection<Document> = db.collection('carts');
-    try {
-      const cart: WithId<Document> | null = await carts.findOne({"userId" : new ObjectId(userId)});
-      if (!cart) {
-        res.status(404).send({message: `Cart not found`});
-        return;
-      }
-      res.status(200).send(cart);
-      return;
-    } catch(err: any) {
-      res.status(500).send({error: err.message});
-      return;
-    }
+    const cart = await getCartDB(mongo, req, res);
+    res.status(200).send(cart);
+    return;
   });
 
+  // TODO: auth needed
   app.put('/api/cart/add', async (req: Request, res: Response) => {
     const { userId, food }: { userId: string, food: Food } = req.body;
     if (userId == null || food == null) {
@@ -147,41 +196,10 @@ async function start() {
     }
   });
 
-  app.put('/api/cart/remove/:userId/:foodId', async (req: Request, res: Response) => {
-    const userId = req.params['userId'];
-    const foodId = req.params['foodId'];
-    if (userId == null || foodId == null) {
-      res.status(400).send({message: "Body not complete"});
-      return;
-    }
-    if (!ObjectId.isValid(userId) || !ObjectId.isValid(foodId)) {
-      res.status(400).send({message: "Id is not a valid mongo ObjectId"});
-      return;
-    }
-    const db: Db = mongo.db();
-    const carts: Collection<Document> = db.collection('carts');
-    try {
-      const cartDB: WithId<Document> | null = await carts.findOne({"userId" : new ObjectId(userId)});
-      if (!cartDB) {
-        res.status(400).send({message: "Cart not found"});
-        return;
-      }
-      const cartId: ObjectId = cartDB._id;
-      const items: CartItem[] = cartDB.items;
-      const updatedItems: CartItem[] = items.filter((item: CartItem): boolean => {
-        return item.foodId.toString() !== foodId.toLowerCase();
-      });
-      if (!(updatedItems.length < items.length)) {
-        res.status(400).send({message: "Food not found"});
-        return;
-      }
-      const updatedCart = await carts.findOneAndUpdate({"_id" : new ObjectId(cartId)}, { $set: { "items" : updatedItems } }, {returnDocument: "after"});
-      res.status(200).send(updatedCart.value);
-      return;
-    } catch (err: any) {
-      res.status(500).send({error: err.message});
-      return;
-    }
+  app.put('/api/cart/remove/:cartId/:foodId', async (req: Request, res: Response) => {
+    const cart = await removeFoodDB(mongo, req, res);
+    res.status(200).send(cart);
+    return;
   });
 
   app.put('/api/cart/edit/quantity/:cartId/:itemId', async (req: Request, res: Response) => {
@@ -232,7 +250,8 @@ async function start() {
     if (type === 'UserCreated') {
       const { data } = req.body;
       const { _id, name, address, email, doNotDisturb } = data;
-      await axios.post('http://localhost:4003/api/cart/create', {userId: _id});
+      req.body.userId = _id;  
+      await createCartDB(mongo, req, res);
       if (_id == undefined || name == undefined || address == undefined || email == undefined || doNotDisturb == undefined) {
         res.status(400).json({ message: 'Event data incomplete' })
         return;
@@ -286,19 +305,26 @@ async function start() {
     if (type === 'OrderProcessed') {
       const { data } = req.body;
       const { userId, foods } = data;
-      const foodIds = foods.map((food: any) => food._id);
+      req.params.userId = userId;
       try {
-        for (let i=0; i<foodIds.length; ++i) {
-          const foodId = foodIds[i];
-          await axios.put(`http://localhost:4003/api/cart/remove/${userId}/${foodId}`, {});
+        const db = mongo.db()
+        const carts: Collection<Document> = db.collection('carts');
+        const cart: WithId<Document> | undefined = await getCartDB(mongo, req, res);
+        if (cart === undefined) {
+          res.status(400).send({message: "Cart not found, given a userId"});
+          return;
         }
-        res.status(200).send({message: "Successfully handled OrderProcessed event inside Cart service"});
+        const cartId = cart._id;
+        const updatedCart = await carts.findOneAndUpdate({"_id" : new ObjectId(cartId)}, { $set: { "items" : []} }, {returnDocument: "after"});
+        res.status(200).send({message : "Successfully handled OrderProcessed event inside Cart Service"})
         return;
       } catch(err) {
         res.status(500).send({message: 'Error occurred while updating cart triggered from -> DeliveryCreated event'})
+        return;
       }
     }
-    return;
+      res.status(200).send({});
+      return;
   });
 
   const eventSubscriptions = ["UserCreated", "OrderProcessed", "RestaurantCreated"];
