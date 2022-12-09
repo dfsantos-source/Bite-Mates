@@ -1,10 +1,11 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { UserNotification, DriverNotification, TYPE_TO_MESSAGE_MAP, Driver, User, Restaurant } from './types/dataTypes';
 import { Collection, Db, Document, FindCursor, MongoClient, WithId } from 'mongodb';
 import { ObjectId } from 'mongodb';
 import logger from 'morgan';
 import axios from 'axios';
 import cors from 'cors';
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 // NOTIFICATIONS SERVICE
 
@@ -39,6 +40,51 @@ async function connectDB(): Promise<MongoClient> {
   return await Promise.resolve(mongo);
 }
 
+
+function verifyDriverToken(req: Request, res: Response, next: NextFunction) {
+  const authHeader: string | undefined = req.headers.authorization;
+  const token: string | undefined = authHeader?.split(" ")[1];
+  if (token === undefined) {
+    res.status(400).json({ message: "Token is missing from header" });
+    return
+  }
+  try {
+    if (process.env.ACCESS_TOKEN === undefined) {
+      res.status(500).json({ message: "access _token string missing" });
+      return;
+    }
+    const parsedToken: string | JwtPayload = jwt.verify(token, process.env.ACCESS_TOKEN) as { _id: string, iat: number };
+    req.body.driverId = parsedToken._id; // dynamic here
+    next();
+  }
+  catch (err) {
+    res.status(500).json({message: "Error verifying token"})
+    return
+  }
+}
+
+function verifyUserToken(req: Request, res: Response, next: NextFunction) {
+  const authHeader: string | undefined = req.headers.authorization;
+  const token: string | undefined = authHeader?.split(" ")[1];
+  if (token === undefined) {
+    res.status(400).json({ message: "Token is missing from header" });
+    return
+  }
+  try {
+    if (process.env.ACCESS_TOKEN === undefined) {
+      res.status(500).json({ message: "access _token string missing" });
+      return;
+    }
+    const parsedToken: string | JwtPayload = jwt.verify(token, process.env.ACCESS_TOKEN) as { _id: string, iat: number };
+    req.body.userId = parsedToken._id; // dynamic here
+    next();
+  }
+  catch (err) {
+    res.status(500).json({message: "Error verifying token"})
+    return
+  }
+}
+
 async function hasDoNotDisturb(mongo: MongoClient, type: string, id: string): Promise<boolean> {
   try {
     const db: Db = mongo.db();
@@ -61,7 +107,7 @@ async function start() {
   const mongo = await connectDB();
 
   // TODO: authorize it
-  app.get('/api/notification/user/get', async (req: Request, res: Response) => {
+  app.get('/api/notification/user/get', verifyUserToken, async (req: Request, res: Response) => {
     const { userId }: { userId: string } = req.body;
     if (userId == null) {
       res.status(400).send({message: "Body not complete"});
@@ -86,7 +132,7 @@ async function start() {
   });
 
   // TODO: authorize it
-  app.get('/api/notification/driver/get', async (req: Request, res: Response) => {
+  app.get('/api/notification/driver/get', verifyDriverToken, async (req: Request, res: Response) => {
     const { driverId }: { driverId: string } = req.body;
     if (driverId== null) {
       res.status(400).send({message: "Body not complete"});

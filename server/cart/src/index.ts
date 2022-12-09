@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { Collection, Db, Document, ModifyResult, MongoClient, WithId } from 'mongodb';
 import { Cart, CartItem, Food, User, Restaurant } from './types/dataTypes';
 import { initRestaurants } from './initData';
@@ -7,6 +7,7 @@ import axios from 'axios';
 import cors from 'cors';
 import { createSecretKey } from 'crypto';
 import logger from 'morgan';
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 const app = express();
 
@@ -107,7 +108,7 @@ async function removeFoodDB(mongo: MongoClient, req: Request, res: Response): Pr
 }
 
 async function getCartDB(mongo: MongoClient, req: Request, res: Response): Promise<WithId<Document> | undefined> {
-  const userId: string = req.params['userId'];
+  const userId: string = req.body['userId'];
   if (userId == null) {
     res.status(400).send({message: "Body not complete"});
     return;
@@ -132,6 +133,28 @@ async function getCartDB(mongo: MongoClient, req: Request, res: Response): Promi
   }
 }
 
+function verifyToken(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(" ")[1];
+  if (token === undefined) {
+    res.status(400).json({ message: "token is missing from header" });
+    return
+  }
+  try {
+    if (process.env.ACCESS_TOKEN === undefined) {
+      res.status(500).json({ message: "access _token string missing" });
+      return;
+    }
+    const user: string | JwtPayload = jwt.verify(token, process.env.ACCESS_TOKEN) as { _id: string, iat: number };
+    req.body.userId = user._id;
+    next();
+  }
+  catch (err) {
+    res.status(500).json("token error")
+    return
+  }
+}
+
 async function start() {
   const mongo = await connectDB();
 
@@ -143,15 +166,13 @@ async function start() {
     return;
   });
 
-  // TODO: auth needed
-  app.get('/api/cart/get/:userId', async (req: Request, res: Response) => {
+  app.get('/api/cart/get', verifyToken, async (req: Request, res: Response) => {
     const cart = await getCartDB(mongo, req, res);
     res.status(200).send(cart);
     return;
   });
 
-  // TODO: auth needed
-  app.put('/api/cart/add', async (req: Request, res: Response) => {
+  app.put('/api/cart/add', verifyToken, async (req: Request, res: Response) => {
     const { userId, food }: { userId: string, food: Food } = req.body;
     if (userId == null || food == null) {
       res.status(400).send({message: "Body not complete"});
@@ -305,7 +326,7 @@ async function start() {
     if (type === 'OrderProcessed') {
       const { data } = req.body;
       const { userId, foods } = data;
-      req.params.userId = userId;
+      req.body.userId = userId;
       try {
         const db = mongo.db()
         const carts: Collection<Document> = db.collection('carts');
