@@ -96,6 +96,7 @@ async function start() {
       }
       else{
         const updatedPickup = updatedPickupDoc.value;
+        updatedPickup.type = "OrderReady";
         axios.post('http://eventbus:4000/events', updatedPickup).catch((err) => {
           console.log(err.message);
         });
@@ -118,6 +119,7 @@ async function start() {
       }
       else{
         const updatedPickup = updatedPickupDoc.value;
+        updatedPickup.type = "OrderCompleted";
         axios.post('http://eventbus:4000/events', updatedPickup).catch((err) => {
           console.log(err.message);
         });

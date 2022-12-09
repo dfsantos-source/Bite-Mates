@@ -96,6 +96,7 @@ async function start() {
       }
       else{
         const updatedDelivery = updatedDeliveryDoc.value;
+        updatedDelivery.type = "DriverAssigned"
         axios.post('http://eventbus:4000/events', updatedDelivery).catch((err) => {
           console.log(err.message);
         });
@@ -118,6 +119,7 @@ async function start() {
       }
       else{
         const updatedDelivery = updatedDeliveryDoc.value;
+        updatedDelivery.type = "OrderCompleted";
         axios.post('http://eventbus:4000/events', updatedDelivery).catch((err) => {
           console.log(err.message);
         });
