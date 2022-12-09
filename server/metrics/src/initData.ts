@@ -134,6 +134,7 @@ export const initRestaurants: Restaurant[] = [
 
 export const initRestaurantOrders: RestaurantMetrics[] = [
     {
+        _id: new ObjectId(),
         restaurantId: new ObjectId("EAC6131B4F5D34CAA897ED35"),
         numOrders: 0,
         totalRevenue: 0,
@@ -143,6 +144,7 @@ export const initRestaurantOrders: RestaurantMetrics[] = [
 
     },
     {
+        _id: new ObjectId(),
         restaurantId: new ObjectId("B95AC011E6D852A59F7A4EBF"),
         numOrders: 0,
         totalRevenue: 0,
@@ -151,6 +153,7 @@ export const initRestaurantOrders: RestaurantMetrics[] = [
         averageRating: 0
     },
     {
+        _id: new ObjectId(),
         restaurantId: new ObjectId("EA82D6BC3BFFBBA733EFE09F"),
         numOrders: 0,
         totalRevenue: 0,
@@ -160,6 +163,7 @@ export const initRestaurantOrders: RestaurantMetrics[] = [
 
     },
     {
+        _id: new ObjectId(),
         restaurantId: new ObjectId("97BDE1B7A92E519AF01F36FD"),
         numOrders: 0,
         totalRevenue: 0,

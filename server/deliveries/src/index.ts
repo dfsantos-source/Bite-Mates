@@ -95,8 +95,10 @@ async function start() {
         res.status(404).send({ message: 'Delivery not found.' });
       }
       else{
-        const updatedDelivery = updatedDeliveryDoc.value;
-        updatedDelivery.type = "DriverAssigned"
+        const updatedDelivery = {
+          type : "DriverAssigned",
+          data : {...updatedDeliveryDoc.value}
+        }
         axios.post('http://eventbus:4000/events', updatedDelivery).catch((err) => {
           console.log(err.message);
         });
@@ -118,8 +120,10 @@ async function start() {
         res.status(404).send({ message: 'Delivery not found.' });
       }
       else{
-        const updatedDelivery = updatedDeliveryDoc.value;
-        updatedDelivery.type = "OrderCompleted";
+        const updatedDelivery = {
+          type : "OrderCompleted",
+          data : {...updatedDeliveryDoc.value}
+        }
         axios.post('http://eventbus:4000/events', updatedDelivery).catch((err) => {
           console.log(err.message);
         });
