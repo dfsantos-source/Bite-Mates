@@ -54,7 +54,7 @@ async function start() {
   app.post('/events', async (req: Request, res: Response) => {
     const event = req.body;
     const delivery = event.data;
-    if(event.type === "OrderProccessed"){
+    if(event.type === "OrderProcessed"){
       if(delivery.status === "ordered"){
         delivery.userId = new ObjectId(delivery.userId);
         const db = mongo.db();
@@ -90,11 +90,13 @@ async function start() {
     const db = mongo.db();
     if(body._id !== null && body.driverId !== null){
       const deliveries = db.collection("deliveries");
-      const updatedDelivery = await deliveries.findOneAndUpdate({_id: new ObjectId(body._id)}, {$set: {driverId: new ObjectId(body.driverId), status: "in transit"}}, {returnDocument : "after"});
-      if(updatedDelivery === null){
+      const updatedDeliveryDoc = await deliveries.findOneAndUpdate({_id: new ObjectId(body._id)}, {$set: {driverId: new ObjectId(body.driverId), status: "in transit"}}, {returnDocument : "after"});
+      if(updatedDeliveryDoc === null){
         res.status(404).send({ message: 'Delivery not found.' });
       }
       else{
+        const updatedDelivery = updatedDeliveryDoc.value;
+        updatedDelivery.type = "DriverAssigned"
         axios.post('http://eventbus:4000/events', updatedDelivery).catch((err) => {
           console.log(err.message);
         });
@@ -111,11 +113,13 @@ async function start() {
     const db = mongo.db();
     if(body._id !== null){
       const deliveries = db.collection("deliveries");
-      const updatedDelivery = await deliveries.findOneAndUpdate({_id: new ObjectId(body._id)}, {$set: {status: "delivered"}}, {returnDocument : "after"});
-      if(updatedDelivery === null){
+      const updatedDeliveryDoc = await deliveries.findOneAndUpdate({_id: new ObjectId(body._id)}, {$set: {status: "delivered"}}, {returnDocument : "after"});
+      if(updatedDeliveryDoc === null){
         res.status(404).send({ message: 'Delivery not found.' });
       }
       else{
+        const updatedDelivery = updatedDeliveryDoc.value;
+        updatedDelivery.type = "OrderCompleted";
         axios.post('http://eventbus:4000/events', updatedDelivery).catch((err) => {
           console.log(err.message);
         });
@@ -127,7 +131,7 @@ async function start() {
     }
   });
 
-  const eventSubscriptions = ["OrderProccessed"];
+  const eventSubscriptions = ["OrderProcessed"];
   const eventURL = "http://deliveries:4001/events"
 
   await axios.post("http://eventbus:4000/subscribe", {

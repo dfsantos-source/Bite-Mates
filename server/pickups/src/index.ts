@@ -90,11 +90,13 @@ async function start() {
     const db = mongo.db();
     if(body._id !== null){
       const pickups = db.collection("pickups");
-      const updatedPickup = await pickups.findOneAndUpdate({_id: new ObjectId(body._id)}, {$set: {status: "ready for pickup"}}, {returnDocument : "after"});
-      if(updatedPickup === null){
+      const updatedPickupDoc = await pickups.findOneAndUpdate({_id: new ObjectId(body._id)}, {$set: {status: "ready for pickup"}}, {returnDocument : "after"});
+      if(updatedPickupDoc === null){
         res.status(404).send({ message: 'Pickup not found.' });
       }
       else{
+        const updatedPickup = updatedPickupDoc.value;
+        updatedPickup.type = "OrderReady";
         axios.post('http://eventbus:4000/events', updatedPickup).catch((err) => {
           console.log(err.message);
         });
@@ -111,11 +113,13 @@ async function start() {
     const db = mongo.db();
     if(body._id !== null){
       const pickups = db.collection("pickups");
-      const updatedPickup = await pickups.findOneAndUpdate({_id: new ObjectId(body._id)}, {$set: {status: "pickedup"}}, {returnDocument : "after"});
-      if(updatedPickup === null){
+      const updatedPickupDoc = await pickups.findOneAndUpdate({_id: new ObjectId(body._id)}, {$set: {status: "pickedup"}}, {returnDocument : "after"});
+      if(updatedPickupDoc === null){
         res.status(404).send({ message: 'Pickup not found.' });
       }
       else{
+        const updatedPickup = updatedPickupDoc.value;
+        updatedPickup.type = "OrderCompleted";
         axios.post('http://eventbus:4000/events', updatedPickup).catch((err) => {
           console.log(err.message);
         });
