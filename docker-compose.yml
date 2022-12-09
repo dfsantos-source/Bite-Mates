@@ -42,7 +42,7 @@ services:
     depends_on:
       - eventbus
     environment:
-      BATABASE_URL: mongodb+srv://root:rootpassword@cluster0.g9utvud.mongodb.net/?retryWrites=true&w=majority
+      DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.g9utvud.mongodb.net/?retryWrites=true&w=majority
       ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
   metrics:
     build: server/metrics
