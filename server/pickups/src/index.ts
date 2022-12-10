@@ -1,13 +1,58 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction }  from 'express';
 import { MongoClient, ObjectId } from 'mongodb';
 import { initRestaurants } from './initData';
 import axios from 'axios';
 import cors from 'cors';
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 const port = 4007;
+
+function verifyDriverToken(req: Request, res: Response, next: NextFunction) {
+  const authHeader: string | undefined = req.headers.authorization;
+  const token: string | undefined = authHeader?.split(" ")[1];
+  if (token === undefined) {
+    res.status(400).json({ message: "Token is missing from header" });
+    return
+  }
+  try {
+    if (process.env.ACCESS_TOKEN === undefined) {
+      res.status(500).json({ message: "access _token string missing" });
+      return;
+    }
+    const parsedToken: string | JwtPayload = jwt.verify(token, process.env.ACCESS_TOKEN) as { _id: string, iat: number };
+    req.body.driverId = parsedToken._id; // dynamic here
+    next();
+  }
+  catch (err) {
+    res.status(500).json({message: "Error verifying token"})
+    return
+  }
+}
+
+function verifyUserToken(req: Request, res: Response, next: NextFunction) {
+  const authHeader: string | undefined = req.headers.authorization;
+  const token: string | undefined = authHeader?.split(" ")[1];
+  if (token === undefined) {
+    res.status(400).json({ message: "Token is missing from header" });
+    return
+  }
+  try {
+    if (process.env.ACCESS_TOKEN === undefined) {
+      res.status(500).json({ message: "access _token string missing" });
+      return;
+    }
+    const parsedToken: string | JwtPayload = jwt.verify(token, process.env.ACCESS_TOKEN) as { _id: string, iat: number };
+    req.body.userId = parsedToken._id; // dynamic here
+    next();
+  }
+  catch (err) {
+    res.status(500).json({message: "Error verifying token"})
+    return
+  }
+}
 
 console.log(process.env.DATABASE_URL);
 
@@ -68,7 +113,7 @@ async function start() {
     }
   });
 
-  app.post('/api/pickup/create', (req: Request, res: Response) => {
+  app.post('/api/pickup/create',verifyUserToken, (req: Request, res: Response) => {
     const body = req.body;
     if(body.userId !== null && body.time !== null && body.foods !== null && body.totalPrice !== null){
       const pickup = {
