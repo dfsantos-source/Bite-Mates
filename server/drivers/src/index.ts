@@ -61,7 +61,7 @@ async function start() {
   app.post('/api/drivers/register', async (req: Request, res: Response) => {
     const { name, email, password }: {name: string, email: string, password: string} = req.body;
     if (name == null || email == null || password == null) {
-      res.status(400).send({message: "Body not complete"});
+      res.status(400).json({message: "Body not complete"});
       return;
     }
     try {
@@ -97,7 +97,7 @@ async function start() {
 
       const token: string = jwt.sign({ _id }, process.env.ACCESS_TOKEN, {});
 
-      res.status(201).send({
+      res.status(201).json({
         message: "Driver successfully registered",
         _id,
         name,
@@ -107,7 +107,7 @@ async function start() {
       });
       return;
     } catch (err: any) {
-      res.status(500).send({error: err.message});
+      res.status(500).json({error: err.message});
     }
   });
 
@@ -115,7 +115,7 @@ async function start() {
   app.post('/api/drivers/login', async (req: Request, res: Response) => {
     const { email, password }: {email: string, password: string} = req.body;
     if (email == null || password == null) {
-      res.status(400).send({message: "Body not complete"});
+      res.status(400).json({message: "Body not complete"});
       return;
     }
     try {
@@ -123,12 +123,12 @@ async function start() {
       const drivers: Collection<Document> = db.collection('drivers');
       const driver: WithId<Document> | null = await drivers.findOne({email});
       if (!driver) {
-        res.status(404).send({message: "Failed to login, no driver found with email."});
+        res.status(404).json({message: "Failed to login, no driver found with email."});
         return;
       }
       const passValid: boolean = await bcrypt.compare(password, driver.password);
       if (!passValid) {
-        res.status(404).send({message: "Failed to login, password incorrect."});
+        res.status(404).json({message: "Failed to login, password incorrect."});
         return;
       }
       if (process.env.ACCESS_TOKEN === undefined) {
@@ -136,7 +136,7 @@ async function start() {
         return
       }
       const token: string = jwt.sign({ _id: driver._id }, process.env.ACCESS_TOKEN, {});
-      res.status(200).send({
+      res.status(200).json({
         message: 'Login successful',
         _id: driver._id,
         name: driver.name,
@@ -146,7 +146,7 @@ async function start() {
       })
       return;
     } catch (err:any) {
-      res.status(500).send({error: err.message});
+      res.status(500).json({error: err.message});
       return;
     } 
   });
@@ -154,11 +154,11 @@ async function start() {
   app.get('/api/drivers/get', verifyDriverToken, async (req: Request, res: Response) => {
     const driverId: string = req.body['driverId'];
     if (driverId == null) {
-      res.status(400).send({message: "Body not complete"});
+      res.status(400).json({message: "Body not complete"});
       return;
     }
     if (!ObjectId.isValid(driverId)) {
-      res.status(400).send({message: "Id is not valid mongo id"});   
+      res.status(400).json({message: "Id is not valid mongo id"});   
       return;
     }
     try {
@@ -166,14 +166,14 @@ async function start() {
       const drivers: Collection<Document> = db.collection('drivers');
       const driver: WithId<Document> | null = await drivers.findOne({"_id" : new ObjectId(driverId)});
       if (!driver) {
-        res.status(404).send({message: "No driver found"});
+        res.status(404).json({message: "No driver found"});
         return;
       }
       const _id: ObjectId = driver._id;
       const name: string = driver.name;
       const email: string = driver.email;
       const doNotDisturb: boolean = driver.doNotDisturb;
-      res.status(200).send({
+      res.status(200).json({
         _id: new ObjectId(_id),
         name,
         email,
@@ -181,7 +181,7 @@ async function start() {
       });
       return;
     } catch(err:any) {
-      res.status(500).send({error: err.message});
+      res.status(500).json({error: err.message});
       return;
     }
   });
@@ -190,11 +190,11 @@ async function start() {
     const driverId: string = req.body['driverId'];
     const doNotDisturb: boolean = req.body['doNotDisturb'];
     if (driverId == null || doNotDisturb == null) {
-      res.status(400).send({message: "Body not complete"});
+      res.status(400).json({message: "Body not complete"});
       return;
     }
     if (!ObjectId.isValid(driverId)) {
-      res.status(400).send({message: "Id is not valid mongo id"});   
+      res.status(400).json({message: "Id is not valid mongo id"});   
       return;
     }
     try {
@@ -202,11 +202,11 @@ async function start() {
       const drivers: Collection<Document> = db.collection('drivers');
       const updatedDriver = await drivers.findOneAndUpdate({"_id" : new ObjectId(driverId)}, { $set: { "doNotDisturb" : doNotDisturb } }, {returnDocument: "after"});
       if (!updatedDriver || !updatedDriver.value) {
-        res.status(404).send({message: "No driver found"});
+        res.status(404).json({message: "No driver found"});
         return;
       }
       const updatedDriverData: WithId<Document> = updatedDriver.value;
-      res.status(200).send({
+      res.status(200).json({
         _id: updatedDriverData._id,
         name: updatedDriverData.name,
         email: updatedDriverData.email,
@@ -214,7 +214,7 @@ async function start() {
       });
       return;
     } catch(err:any) {
-      res.status(500).send({error: err.message});
+      res.status(500).json({error: err.message});
       return;
     }
   });
@@ -223,11 +223,11 @@ async function start() {
     const driverId: string = req.body['driverId'];
     const email: string = req.body['email'];
     if (driverId == null || email == null) {
-      res.status(400).send({message: "Body not complete"});
+      res.status(400).json({message: "Body not complete"});
       return;
     }
     if (!ObjectId.isValid(driverId)) {
-      res.status(400).send({message: "Id is not valid mongo id"});   
+      res.status(400).json({message: "Id is not valid mongo id"});   
       return;
     }
     try {
@@ -235,11 +235,11 @@ async function start() {
       const drivers: Collection<Document> = db.collection('drivers');
       const updatedDriver = await drivers.findOneAndUpdate({"_id" : new ObjectId(driverId)}, { $set: { "email" : email } }, {returnDocument: "after"});
       if (!updatedDriver || !updatedDriver.value) {
-        res.status(404).send({message: "No driver found"});
+        res.status(404).json({message: "No driver found"});
         return;
       }
       const updatedDriverData: WithId<Document> = updatedDriver.value;
-      res.status(200).send({
+      res.status(200).json({
         _id: updatedDriverData._id,
         name: updatedDriverData.name,
         email: updatedDriverData.email,
@@ -247,13 +247,13 @@ async function start() {
       });
       return;
     } catch(err:any) {
-      res.status(500).send({error: err.message});
+      res.status(500).json({error: err.message});
       return;
     }
   });
 
   app.get('/', (req: Request, res: Response) => {
-    res.send({ message: 'ok' });
+    res.json({ message: 'ok' });
   });
 
   app.listen(port, () => {

@@ -110,11 +110,11 @@ async function start() {
   app.get('/api/notification/user/get', verifyUserToken, async (req: Request, res: Response) => {
     const { userId }: { userId: string } = req.body;
     if (userId == null) {
-      res.status(400).send({message: "Body not complete"});
+      res.status(400).json({message: "Body not complete"});
       return;
     }
     if (!ObjectId.isValid(userId)) {
-      res.status(400).send({message: "Id is not a valid mongo ObjectId"});
+      res.status(400).json({message: "Id is not a valid mongo ObjectId"});
       return;
     }
     try {
@@ -125,9 +125,9 @@ async function start() {
       await cursor.forEach(doc => {
         userNotifications.push(doc);
       });
-      return res.status(200).send(userNotifications);
+      return res.status(200).json(userNotifications);
     } catch (err: any) {
-      res.status(500).send({error: err.message});
+      res.status(500).json({error: err.message});
     }
   });
 
@@ -135,11 +135,11 @@ async function start() {
   app.get('/api/notification/driver/get', verifyDriverToken, async (req: Request, res: Response) => {
     const { driverId }: { driverId: string } = req.body;
     if (driverId== null) {
-      res.status(400).send({message: "Body not complete"});
+      res.status(400).json({message: "Body not complete"});
       return;
     }
     if (!ObjectId.isValid(driverId)) {
-      res.status(400).send({message: "Id is not a valid mongo ObjectId"});
+      res.status(400).json({message: "Id is not a valid mongo ObjectId"});
       return;
     }
     try {
@@ -150,20 +150,20 @@ async function start() {
       await cursor.forEach(doc => {
         driverNotifications.push(doc);
       });
-      return res.status(200).send(driverNotifications);
+      return res.status(200).json(driverNotifications);
     } catch (err: any) {
-      res.status(500).send({error: err.message});
+      res.status(500).json({error: err.message});
     }
   });
 
   app.post('/api/notification/user/create', async (req: Request, res: Response) => {
     const { userId, notificationMessage }: {userId: string, notificationMessage: string} = req.body;
     if (userId == null || notificationMessage == null) {
-      res.status(400).send({message: "Body not complete"});
+      res.status(400).json({message: "Body not complete"});
       return;
     }
     if (!ObjectId.isValid(userId)) {
-      res.status(400).send({message: "Id is not a valid mongo ObjectId"});
+      res.status(400).json({message: "Id is not a valid mongo ObjectId"});
       return;
     }
     try {
@@ -180,21 +180,21 @@ async function start() {
 
       await notifications.insertOne(notification);
     
-      res.status(201).send(notification);
+      res.status(201).json(notification);
       return;
     } catch (err: any) {
-      res.status(500).send({error: err.message});
+      res.status(500).json({error: err.message});
     }
   });
 
   app.post('/api/notification/driver/create', async (req: Request, res: Response) => {
     const { driverId, notificationMessage }: {driverId: string, notificationMessage: string} = req.body;
     if (driverId == null || notificationMessage == null) {
-      res.status(400).send({message: "Body not complete"});
+      res.status(400).json({message: "Body not complete"});
       return;
     }
     if (!ObjectId.isValid(driverId)) {
-      res.status(400).send({message: "Id is not a valid mongo ObjectId"});
+      res.status(400).json({message: "Id is not a valid mongo ObjectId"});
       return;
     }
     try {
@@ -211,10 +211,10 @@ async function start() {
 
       await notifications.insertOne(notification);
     
-      res.status(201).send(notification);
+      res.status(201).json(notification);
       return;
     } catch (err: any) {
-      res.status(500).send({error: err.message});
+      res.status(500).json({error: err.message});
     }
   });
 
@@ -222,11 +222,11 @@ async function start() {
     const notificationId: string = req.params['notificationId'];
     const { isRead }: {isRead: boolean} = req.body;
     if (notificationId == null || isRead == null) {
-      res.status(400).send({message: "Body not complete"});
+      res.status(400).json({message: "Body not complete"});
       return;
     }
     if (!ObjectId.isValid(notificationId)) {
-      res.status(400).send({message: "Id is not a valid mongo ObjectId"});
+      res.status(400).json({message: "Id is not a valid mongo ObjectId"});
       return;
     }
     const db: Db = mongo.db();
@@ -234,14 +234,14 @@ async function start() {
     try {
       const notificationDB: WithId<Document> | null = await notifications.findOne({"_id" : new ObjectId(notificationId)});
       if (!notificationDB) {
-        res.status(400).send({message: "Notification not found"});
+        res.status(400).json({message: "Notification not found"});
         return;
       }
       const updatedNotification = await notifications.findOneAndUpdate({"_id" : new ObjectId(notificationId)}, { $set: { "isRead" : isRead} }, {returnDocument: "after"});
-      res.status(200).send(updatedNotification.value);
+      res.status(200).json(updatedNotification.value);
       return;
     } catch (err: any) {
-      res.status(500).send({error: err.message});
+      res.status(500).json({error: err.message});
       return;
     }
   });
@@ -250,11 +250,11 @@ async function start() {
     const notificationId: string = req.params['notificationId'];
     const { isRead }: {isRead: boolean} = req.body;
     if (notificationId == null || isRead == null) {
-      res.status(400).send({message: "Body not complete"});
+      res.status(400).json({message: "Body not complete"});
       return;
     }
     if (!ObjectId.isValid(notificationId)) {
-      res.status(400).send({message: "Id is not a valid mongo ObjectId"});
+      res.status(400).json({message: "Id is not a valid mongo ObjectId"});
       return;
     }
     const db: Db = mongo.db();
@@ -262,14 +262,14 @@ async function start() {
     try {
       const notificationDB: WithId<Document> | null = await notifications.findOne({"_id" : new ObjectId(notificationId)});
       if (!notificationDB) {
-        res.status(400).send({message: "Notification not found"});
+        res.status(400).json({message: "Notification not found"});
         return;
       }
       const updatedNotification = await notifications.findOneAndUpdate({"_id" : new ObjectId(notificationId)}, { $set: { "isRead" : isRead} }, {returnDocument: "after"});
-      res.status(200).send(updatedNotification.value);
+      res.status(200).json(updatedNotification.value);
       return;
     } catch (err: any) {
-      res.status(500).send({error: err.message});
+      res.status(500).json({error: err.message});
       return;
     }
   });
@@ -291,10 +291,10 @@ async function start() {
           doNotDisturb
         }
         await users.insertOne(user);
-        res.status(200).send({message: "Successfully handled UserCreated event in Notification Service"});
+        res.status(200).json({message: "Successfully handled UserCreated event in Notification Service"});
         return;
       } catch (err: any) {
-        res.status(500).send({error: err.message});
+        res.status(500).json({error: err.message});
         return;
       }
     }
@@ -313,10 +313,10 @@ async function start() {
           doNotDisturb
         }
         await drivers.insertOne(driver);
-        res.status(200).send({message: "Successfully handled DriverCreated event in Notification Service"});
+        res.status(200).json({message: "Successfully handled DriverCreated event in Notification Service"});
         return;
       } catch (err: any) {
-        res.status(500).send({error: err.message});
+        res.status(500).json({error: err.message});
         return;
       }
     }
@@ -339,7 +339,7 @@ async function start() {
         }
         const restaurants = db.collection("restaurants")
         await restaurants.insertOne(newRestaurant)
-        res.status(200).send({message: "Successfully handled RestaurantCreated event inside Cart service"});
+        res.status(200).json({message: "Successfully handled RestaurantCreated event inside Cart service"});
         return;
       } catch (error) {
         res.status(500).json(error)
@@ -347,7 +347,7 @@ async function start() {
       }
     }
 
-    // send a notification to the user that their order was placed,
+    // json a notification to the user that their order was placed,
     // this could either be a pickup or delivery
     if (type === 'OrderCreated') {
       const { data } = req.body;
@@ -361,7 +361,7 @@ async function start() {
           userId,
           notificationMessage
         }); 
-        res.status(200).send({message: "Successfully handled OrderCreated event in Notification Service"});
+        res.status(200).json({message: "Successfully handled OrderCreated event in Notification Service"});
         return;
       }
     }
@@ -391,7 +391,7 @@ async function start() {
           });
         } 
       }
-      res.status(200).send({message: "Successfully handled OrderProcessed event in Notification Service"});
+      res.status(200).json({message: "Successfully handled OrderProcessed event in Notification Service"});
       return;
     }
 
@@ -407,7 +407,7 @@ async function start() {
           notificationMessage
         }); 
       }
-      res.status(200).send({message: "Successfully handled MoneyAdded event in Notification Service"});
+      res.status(200).json({message: "Successfully handled MoneyAdded event in Notification Service"});
       return;
     }
 
@@ -424,11 +424,11 @@ async function start() {
           notificationMessage
         }); 
       }
-      res.status(200).send({message: "Successfully handled DriverAssigned event in Notification Service"});
+      res.status(200).json({message: "Successfully handled DriverAssigned event in Notification Service"});
       return;
     }
 
-    res.send({ message: 'ok' });
+    res.json({ message: 'ok' });
     return;
   });
 
@@ -441,7 +441,7 @@ async function start() {
   })
 
   app.get('/', (req: Request, res: Response) => {
-    res.send({ message: 'ok' });
+    res.json({ message: 'ok' });
   });
 
   app.listen(port, () => {

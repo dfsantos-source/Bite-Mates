@@ -48,11 +48,11 @@ async function initDB(mongo: MongoClient) {
 async function createCartDB(mongo: MongoClient, req: Request, res: Response): Promise<Cart | undefined> {
   const { userId }: { userId: string } = req.body;
   if (userId == null) {
-    res.status(400).send({message: "Body not complete"});
+    res.status(400).json({message: "Body not complete"});
     return;
   }
   if (!ObjectId.isValid(userId)) {
-    res.status(400).send({message: "Id is not a valid mongo ObjectId"});
+    res.status(400).json({message: "Id is not a valid mongo ObjectId"});
     return;
   }
   const db: Db = mongo.db();
@@ -67,7 +67,7 @@ async function createCartDB(mongo: MongoClient, req: Request, res: Response): Pr
     await carts.insertOne(cart);
     return cart;  
   } catch (err: any) {
-    res.status(500).send({error: err.message});
+    res.status(500).json({error: err.message});
     return;
   }
 }
@@ -76,11 +76,11 @@ async function removeFoodDB(mongo: MongoClient, req: Request, res: Response): Pr
   const cartId = req.params['cartId'];
   const foodId = req.params['foodId'];
   if (cartId == null || foodId == null) {
-    res.status(400).send({message: "Body not complete"});
+    res.status(400).json({message: "Body not complete"});
     return;
   }
   if (!ObjectId.isValid(cartId) || !ObjectId.isValid(foodId)) {
-    res.status(400).send({message: "Id is not a valid mongo ObjectId"});
+    res.status(400).json({message: "Id is not a valid mongo ObjectId"});
     return;
   }
   const db: Db = mongo.db();
@@ -88,7 +88,7 @@ async function removeFoodDB(mongo: MongoClient, req: Request, res: Response): Pr
   try {
     const cartDB: WithId<Document> | null = await carts.findOne({"_id" : new ObjectId(cartId)});
     if (!cartDB) {
-      res.status(400).send({message: "Cart not found"});
+      res.status(400).json({message: "Cart not found"});
       return;
     }
     const items: CartItem[] = cartDB.items;
@@ -96,13 +96,13 @@ async function removeFoodDB(mongo: MongoClient, req: Request, res: Response): Pr
       return item.foodId.toString() !== foodId.toLowerCase();
     });
     if (!(updatedItems.length < items.length)) {
-      res.status(400).send({message: "Food not found"});
+      res.status(400).json({message: "Food not found"});
       return;
     }
     const updatedCart = await carts.findOneAndUpdate({"_id" : new ObjectId(cartId)}, { $set: { "items" : updatedItems } }, {returnDocument: "after"});
     return updatedCart.value;
   } catch (err: any) {
-    res.status(500).send({error: err.message});
+    res.status(500).json({error: err.message});
     return;
   }
 }
@@ -110,11 +110,11 @@ async function removeFoodDB(mongo: MongoClient, req: Request, res: Response): Pr
 async function getCartDB(mongo: MongoClient, req: Request, res: Response): Promise<WithId<Document> | undefined> {
   const userId: string = req.body['userId'];
   if (userId == null) {
-    res.status(400).send({message: "Body not complete"});
+    res.status(400).json({message: "Body not complete"});
     return;
   }
   if (!ObjectId.isValid(userId)) {
-    res.status(400).send({message: "Id is not a valid mongo ObjectId"});
+    res.status(400).json({message: "Id is not a valid mongo ObjectId"});
     return;
   }
   const db: Db = mongo.db();
@@ -122,13 +122,13 @@ async function getCartDB(mongo: MongoClient, req: Request, res: Response): Promi
   try {
     const cart: WithId<Document> | null = await carts.findOne({"userId" : new ObjectId(userId)});
     if (!cart) {
-      res.status(404).send({message: `Cart not found`});
+      res.status(404).json({message: `Cart not found`});
       return;
     }
     return cart;
     return;
   } catch(err: any) {
-    res.status(500).send({error: err.message});
+    res.status(500).json({error: err.message});
     return;
   }
 }
@@ -162,24 +162,24 @@ async function start() {
 
   app.post('/api/cart/create', async (req: Request, res: Response) => {
     const cart = await createCartDB(mongo, req, res);
-    res.status(200).send(cart);
+    res.status(200).json(cart);
     return;
   });
 
   app.get('/api/cart/get', verifyToken, async (req: Request, res: Response) => {
     const cart = await getCartDB(mongo, req, res);
-    res.status(200).send(cart);
+    res.status(200).json(cart);
     return;
   });
 
   app.put('/api/cart/add', verifyToken, async (req: Request, res: Response) => {
     const { userId, food }: { userId: string, food: Food } = req.body;
     if (userId == null || food == null) {
-      res.status(400).send({message: "Body not complete"});
+      res.status(400).json({message: "Body not complete"});
       return;
     }
     if (!ObjectId.isValid(userId)) {
-      res.status(400).send({message: "Id is not a valid mongo ObjectId"});
+      res.status(400).json({message: "Id is not a valid mongo ObjectId"});
       return;
     }
     const db = mongo.db();
@@ -187,7 +187,7 @@ async function start() {
     try {
       const cartDB: WithId<Document> | null = await carts.findOne({"userId" : new ObjectId(userId)});
       if (!cartDB) {
-        res.status(400).send({message: "Cart not found"});
+        res.status(400).json({message: "Cart not found"});
         return;
       }
       const cartId: ObjectId = cartDB._id;
@@ -195,7 +195,7 @@ async function start() {
         if (cartDB.items[i].foodId.toString().toLowerCase() === food._id.toString().toLowerCase()) {
           cartDB.items[i].quantity += 1;
           const updatedCart = await carts.findOneAndUpdate({"_id" : new ObjectId(cartId)}, { $set: { "items" : cartDB.items } }, {returnDocument: "after"});
-          res.status(200).send(updatedCart.value);
+          res.status(200).json(updatedCart.value);
           return;
         }
       }
@@ -209,17 +209,17 @@ async function start() {
       }
       cartDB.items.push(cartItem);
       const updatedCart = await carts.findOneAndUpdate({"_id" : new ObjectId(cartId)}, { $set: { "items" : cartDB.items } }, {returnDocument: "after"});
-      res.status(200).send(updatedCart.value);
+      res.status(200).json(updatedCart.value);
       return;
     } catch(err: any) {
-      res.status(500).send({error: err.message});
+      res.status(500).json({error: err.message});
       return;
     }
   });
 
   app.put('/api/cart/remove/:cartId/:foodId', async (req: Request, res: Response) => {
     const cart = await removeFoodDB(mongo, req, res);
-    res.status(200).send(cart);
+    res.status(200).json(cart);
     return;
   });
 
@@ -228,11 +228,11 @@ async function start() {
     const itemId = req.params['itemId'];
     const { quantity }: {quantity: number} = req.body;
     if (cartId == null || itemId == null || quantity == null) {
-      res.status(400).send({message: "Body not complete"});
+      res.status(400).json({message: "Body not complete"});
       return;
     }
     if (!ObjectId.isValid(cartId) || !ObjectId.isValid(itemId)) {
-      res.status(400).send({message: "Id is not a valid mongo ObjectId"});
+      res.status(400).json({message: "Id is not a valid mongo ObjectId"});
       return;
     }
     const db: Db = mongo.db();
@@ -240,7 +240,7 @@ async function start() {
     try {
       const cartDB: WithId<Document> | null = await carts.findOne({"_id" : new ObjectId(cartId)});
       if (!cartDB) {
-        res.status(400).send({message: "Cart not found"});
+        res.status(400).json({message: "Cart not found"});
         return;
       }
       const items: CartItem[] = cartDB.items;
@@ -250,18 +250,18 @@ async function start() {
           if (items[i].quantity === 0) {
             items.splice(i, 1);
             const updatedCart = await carts.findOneAndUpdate({"_id" : new ObjectId(cartId)}, { $set: { "items" : items} }, {returnDocument: "after"});
-            res.status(200).send(updatedCart.value);
+            res.status(200).json(updatedCart.value);
             return;
           }
           const updatedCart = await carts.findOneAndUpdate({"_id" : new ObjectId(cartId)}, { $set: { "items" : items} }, {returnDocument: "after"});
-          res.status(200).send(updatedCart.value);
+          res.status(200).json(updatedCart.value);
           return;
         }
       }
-      res.status(404).send({message: `Item not found`});
+      res.status(404).json({message: `Item not found`});
       return;
     } catch (err: any) {
-      res.status(500).send({error: err.message});
+      res.status(500).json({error: err.message});
       return;
     }
   });
@@ -288,7 +288,7 @@ async function start() {
         }
         const users = db.collection("users")
         await users.insertOne(newUser)
-        res.status(200).send({message: "Successfully handled UserCreated event inside Cart service"});
+        res.status(200).json({message: "Successfully handled UserCreated event inside Cart service"});
         return;
       } catch (error) {
         res.status(500).json(error)
@@ -315,7 +315,7 @@ async function start() {
         }
         const restaurants = db.collection("restaurants")
         await restaurants.insertOne(newRestaurant)
-        res.status(200).send({message: "Successfully handled RestaurantCreated event inside Cart service"});
+        res.status(200).json({message: "Successfully handled RestaurantCreated event inside Cart service"});
         return;
       } catch (error) {
         res.status(500).json(error)
@@ -332,19 +332,19 @@ async function start() {
         const carts: Collection<Document> = db.collection('carts');
         const cart: WithId<Document> | undefined = await getCartDB(mongo, req, res);
         if (cart === undefined) {
-          res.status(400).send({message: "Cart not found, given a userId"});
+          res.status(400).json({message: "Cart not found, given a userId"});
           return;
         }
         const cartId = cart._id;
         const updatedCart = await carts.findOneAndUpdate({"_id" : new ObjectId(cartId)}, { $set: { "items" : []} }, {returnDocument: "after"});
-        res.status(200).send({message : "Successfully handled OrderProcessed event inside Cart Service"})
+        res.status(200).json({message : "Successfully handled OrderProcessed event inside Cart Service"})
         return;
       } catch(err) {
-        res.status(500).send({message: 'Error occurred while updating cart triggered from -> DeliveryCreated event'})
+        res.status(500).json({message: 'Error occurred while updating cart triggered from -> DeliveryCreated event'})
         return;
       }
     }
-      res.status(200).send({});
+      res.status(200).json({});
       return;
   });
 
@@ -357,7 +357,7 @@ async function start() {
   })
 
   app.get('/', (req: Request, res: Response) => {
-    res.send({ message: 'ok' });
+    res.json({ message: 'ok' });
   });
 
   app.listen(port, () => {
