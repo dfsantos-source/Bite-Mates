@@ -279,18 +279,20 @@ async function start() {
     if (type === 'UserCreated') {
       try {
         const { data } = req.body;
-        const { userId, name, address, email, doNotDisturb }:
-        {userId: string, name: string, address: string, email: string, doNotDisturb: boolean} = data;
+        const { _id, name, address, email, doNotDisturb }:
+        {_id: string, name: string, address: string, email: string, doNotDisturb: boolean} = data;
         const db: Db = mongo.db();
         const users: Collection<Document> = db.collection('users');
         const user: User = {
-          _id: new ObjectId(userId),
+          _id: new ObjectId(_id),
           name,
           address,
           email,
           doNotDisturb
         }
         await users.insertOne(user);
+        res.status(200).send({message: "Successfully handled UserCreated event in Notification Service"});
+        return;
       } catch (err: any) {
         res.status(500).send({error: err.message});
         return;
@@ -300,17 +302,19 @@ async function start() {
     if (type === 'DriverCreated') {
       try {
         const { data } = req.body;
-        const { driverId, name, email, doNotDisturb }:
-        {driverId: string, name: string, email: string, doNotDisturb: boolean} = data;
+        const { _id, name, email, doNotDisturb }:
+        {_id: string, name: string, email: string, doNotDisturb: boolean} = data;
         const db: Db = mongo.db();
         const drivers: Collection<Document> = db.collection('drivers');
         const driver: Driver = {
-          _id: new ObjectId(driverId),
+          _id: new ObjectId(_id),
           name,
           email,
           doNotDisturb
         }
         await drivers.insertOne(driver);
+        res.status(200).send({message: "Successfully handled DriverCreated event in Notification Service"});
+        return;
       } catch (err: any) {
         res.status(500).send({error: err.message});
         return;
@@ -357,6 +361,8 @@ async function start() {
           userId,
           notificationMessage
         }); 
+        res.status(200).send({message: "Successfully handled OrderCreated event in Notification Service"});
+        return;
       }
     }
 
@@ -385,6 +391,8 @@ async function start() {
           });
         } 
       }
+      res.status(200).send({message: "Successfully handled OrderProcessed event in Notification Service"});
+      return;
     }
 
     // send a notification to the user that their balance has been updated
@@ -399,11 +407,13 @@ async function start() {
           notificationMessage
         }); 
       }
+      res.status(200).send({message: "Successfully handled MoneyAdded event in Notification Service"});
+      return;
     }
 
     // send a notification to the driver that they 
     // have been assigned a delivery 
-    if (type === 'DeliveryAssigned') {
+    if (type === 'DriverAssigned') {
       const { data } = req.body;
       const { driverId }: {driverId: string} = data;
       const doNotDisturb: boolean = await hasDoNotDisturb(mongo, 'driver', driverId);
@@ -414,6 +424,8 @@ async function start() {
           notificationMessage
         }); 
       }
+      res.status(200).send({message: "Successfully handled DriverAssigned event in Notification Service"});
+      return;
     }
 
     res.send({ message: 'ok' });
