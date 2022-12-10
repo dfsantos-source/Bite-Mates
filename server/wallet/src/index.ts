@@ -1,12 +1,58 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { MongoClient, ObjectId } from 'mongodb';
 import axios from 'axios';
 import cors from 'cors';
+import jwt, { JwtPayload } from "jsonwebtoken";
+
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 const port = 4012;
+
+function verifyDriverToken(req: Request, res: Response, next: NextFunction) {
+  const authHeader: string | undefined = req.headers.authorization;
+  const token: string | undefined = authHeader?.split(" ")[1];
+  if (token === undefined) {
+    res.status(400).json({ message: "Token is missing from header" });
+    return
+  }
+  try {
+    if (process.env.ACCESS_TOKEN === undefined) {
+      res.status(500).json({ message: "access _token string missing" });
+      return;
+    }
+    const parsedToken: string | JwtPayload = jwt.verify(token, process.env.ACCESS_TOKEN) as { _id: string, iat: number };
+    req.body.driverId = parsedToken._id; // dynamic here
+    next();
+  }
+  catch (err) {
+    res.status(500).json({message: "Error verifying token"})
+    return
+  }
+}
+
+function verifyUserToken(req: Request, res: Response, next: NextFunction) {
+  const authHeader: string | undefined = req.headers.authorization;
+  const token: string | undefined = authHeader?.split(" ")[1];
+  if (token === undefined) {
+    res.status(400).json({ message: "Token is missing from header" });
+    return
+  }
+  try {
+    if (process.env.ACCESS_TOKEN === undefined) {
+      res.status(500).json({ message: "access _token string missing" });
+      return;
+    }
+    const parsedToken: string | JwtPayload = jwt.verify(token, process.env.ACCESS_TOKEN) as { _id: string, iat: number };
+    req.body.userId = parsedToken._id; // dynamic here
+    next();
+  }
+  catch (err) {
+    res.status(500).json({message: "Error verifying token"})
+    return
+  }
+}
 
 console.log(process.env.DATABASE_URL);
 
@@ -29,7 +75,7 @@ async function start() {
     res.send({ message: 'ok' });
   });
 
-  app.post('/events', async (req: Request, res: Response) => {
+  app.post('/events', verifyUserToken, async (req: Request, res: Response) => {
     const event = req.body;
     const delivery = event.data;
     const db = mongo.db();
@@ -67,7 +113,7 @@ async function start() {
     }
   });
 
-  app.put('/api/wallet/update', async (req: Request, res: Response) => {
+  app.put('/api/wallet/update', verifyUserToken, async (req: Request, res: Response) => {
     const body = req.body;
     const db = mongo.db();
     const wallets = db.collection("wallets");
@@ -96,8 +142,8 @@ async function start() {
     }
   });
 
-  app.get('/api/wallet/get/:userid', async (req: Request, res: Response) => {
-    const userid = req.params.userid;
+  app.get('/api/wallet/get', verifyUserToken, async (req: Request, res: Response) => {
+    const userid = req.body.userid;
     const db = mongo.db();
     const wallets = db.collection("wallets");
     if(userid !== null){
