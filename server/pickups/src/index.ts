@@ -10,28 +10,6 @@ app.use(express.json());
 app.use(cors());
 const port = 4007;
 
-function verifyDriverToken(req: Request, res: Response, next: NextFunction) {
-  const authHeader: string | undefined = req.headers.authorization;
-  const token: string | undefined = authHeader?.split(" ")[1];
-  if (token === undefined) {
-    res.status(400).json({ message: "Token is missing from header" });
-    return
-  }
-  try {
-    if (process.env.ACCESS_TOKEN === undefined) {
-      res.status(500).json({ message: "access _token string missing" });
-      return;
-    }
-    const parsedToken: string | JwtPayload = jwt.verify(token, process.env.ACCESS_TOKEN) as { _id: string, iat: number };
-    req.body.driverId = parsedToken._id; // dynamic here
-    next();
-  }
-  catch (err) {
-    res.status(500).json({message: "Error verifying token"})
-    return
-  }
-}
-
 function verifyUserToken(req: Request, res: Response, next: NextFunction) {
   const authHeader: string | undefined = req.headers.authorization;
   const token: string | undefined = authHeader?.split(" ")[1];
@@ -111,6 +89,29 @@ async function start() {
         res.status(404).send({ message: 'Insufficient Funds.' });
       }
     }
+    if(event.type === "OrderReady"){
+      const db = mongo.db();
+      if(pickup._id !== null){
+        const pickups = db.collection("pickups");
+        const updatedPickupDoc = await pickups.findOneAndUpdate({_id: new ObjectId(pickup._id)}, {$set: {status: "ready for pickup"}}, {returnDocument : "after"});
+        if(updatedPickupDoc === null){
+          res.status(404).send({ message: 'Pickup not found.' });
+        }
+        else{
+          const updatedPickup = {
+            type : "OrderReady",
+            data : {...updatedPickupDoc.value}
+          }
+          axios.post('http://eventbus:4000/events', updatedPickup).catch((err) => {
+            console.log(err.message);
+          });
+          res.status(200).json({pickup: updatedPickup, message: 'Order ready for pickup.' });
+        }
+      }
+      else{
+        res.status(400).send({ message: 'Body not complete.' });
+      }
+    }
   });
 
   app.post('/api/pickup/create',verifyUserToken, (req: Request, res: Response) => {
@@ -128,32 +129,7 @@ async function start() {
     else{
       res.status(400).send({ message: 'Body not complete.' });
     }
-  });
-
-  app.put('/api/pickup/ready', async (req: Request, res: Response) => {
-    const body = req.body;
-    const db = mongo.db();
-    if(body._id !== null){
-      const pickups = db.collection("pickups");
-      const updatedPickupDoc = await pickups.findOneAndUpdate({_id: new ObjectId(body._id)}, {$set: {status: "ready for pickup"}}, {returnDocument : "after"});
-      if(updatedPickupDoc === null){
-        res.status(404).send({ message: 'Pickup not found.' });
-      }
-      else{
-        const updatedPickup = {
-          type : "OrderReady",
-          data : {...updatedPickupDoc.value}
-        }
-        axios.post('http://eventbus:4000/events', updatedPickup).catch((err) => {
-          console.log(err.message);
-        });
-        res.status(200).json({pickup: updatedPickup, message: 'Order ready for pickup.' });
-      }
-    }
-    else{
-      res.status(400).send({ message: 'Body not complete.' });
-    }
-  });
+  });  
 
   app.put('/api/pickup/complete', async (req: Request, res: Response) => {
     const body = req.body;
@@ -180,8 +156,8 @@ async function start() {
     }
   });
 
-  const eventSubscriptions = ["OrderProccessed"];
-  const eventURL = "http://deliveries:4001/events"
+  const eventSubscriptions = ["OrderProccessed", "OrderReady"];
+  const eventURL = "http://pickups:4007/events"
 
   await axios.post("http://eventbus:4000/subscribe", {
     eventTypes: eventSubscriptions,
