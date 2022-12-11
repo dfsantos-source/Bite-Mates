@@ -25,7 +25,8 @@ const MESSAGE_MAP: TYPE_TO_MESSAGE_MAP = {
   delivery_success: `Your food has arrived at your residential area! Enjoy!`,
   pickup_success: `You have successfully picked up your food! Enjoy!`,
   wallet_success: `Your account balance has been updated!`,
-  delivery_assigned_success: `A delivery has been assigned to you!`
+  delivery_assigned_success: `A delivery has been assigned to you!`,
+  order_ready: `Your food is ready to be picked up!`
 };
 
 async function connectDB(): Promise<MongoClient> {
@@ -428,11 +429,28 @@ async function start() {
       return;
     }
 
+    // send a notification to the user that their order is ready for pickup
+    if (type === 'OrderReady') {
+      const { data } = req.body;
+      const { userId }: {userId: string } = data;
+      const orderType: string = data.type;
+      const doNotDisturbUser: boolean = await hasDoNotDisturb(mongo, 'user', userId);
+      if (orderType === 'pickup' && !doNotDisturbUser) { // pickup
+        const notificationMessage: string = MESSAGE_MAP.order_ready;
+        await axios.post(`http://notifications:4006/api/notification/user/create`, {
+          userId,
+          notificationMessage
+        });
+      }
+      res.status(200).json({message: "Successfully handled OrderReady event in Notification Service"});
+      return;
+    }
+
     res.json({ message: 'ok' });
     return;
   });
 
-  const eventSubscriptions = ["UserCreated", "DriverCreated", "MoneyAdded", "DeliveryAssigned", "OrderProcessed", "RestaurantCreated"];
+  const eventSubscriptions = ["UserCreated", "DriverCreated", "MoneyAdded", "DeliveryAssigned", "OrderProcessed", "RestaurantCreated", "OrderReady"];
   const eventURL = "http://notifications:4006/events"
 
   await axios.post("http://eventbus:4000/subscribe", {
