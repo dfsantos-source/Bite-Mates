@@ -77,7 +77,7 @@ async function start() {
   app.post('/events', async (req: Request, res: Response) => {
     const event = req.body;
     const pickup = event.data;
-    if(event.type === "OrderProccessed" && pickup.type === "pickup"){
+    if(event.type === "OrderProcessed" && pickup.type === "pickup"){
       if(pickup.status === "ordered"){
         pickup.userId = new ObjectId(pickup.userId);
         const db = mongo.db();
@@ -156,7 +156,7 @@ async function start() {
     }
   });
 
-  const eventSubscriptions = ["OrderProccessed", "OrderReady"];
+  const eventSubscriptions = ["OrderProcessed", "OrderReady"];
   const eventURL = "http://pickups:4007/events"
 
   await axios.post("http://eventbus:4000/subscribe", {
