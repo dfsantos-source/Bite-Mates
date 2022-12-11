@@ -450,7 +450,7 @@ async function start() {
     return;
   });
 
-  const eventSubscriptions = ["UserCreated", "DriverCreated", "MoneyAdded", "DeliveryAssigned", "OrderProcessed", "RestaurantCreated", "OrderReady"];
+  const eventSubscriptions = ["UserCreated", "DriverCreated", "MoneyAdded", "DriverAssigned", "OrderProcessed", "RestaurantCreated", "OrderReady", "OrderCreated"];
   const eventURL = "http://notifications:4006/events"
 
   await axios.post("http://eventbus:4000/subscribe", {
