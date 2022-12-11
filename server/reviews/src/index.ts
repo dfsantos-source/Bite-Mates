@@ -293,6 +293,14 @@ async function start() {
     }
 
   });
+
+  const event_sub = ["UserCreated", "DriverCreated", "RestaurantCreated"];
+  const event_URL = "http://reviews:4010/events";
+
+  await axios.post("http://eventbus:4000/subscribe", {
+    eventTypes: event_sub,
+    URL: event_URL
+  });
   
   app.listen(port, () => {
     console.log(`Running on ${port}.`);

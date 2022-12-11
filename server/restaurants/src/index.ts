@@ -265,9 +265,17 @@ async function start() {
     }
   });
 
+  const event_sub = ["OrderProcessed"];
+  const event_URL = "http://restaurants:4008/events";
+
+  await axios.post("http://eventbus:4000/subscribe", {
+    eventTypes: event_sub,
+    URL: event_URL
+  });
+
   app.listen(port, () => {
     console.log(`Running on ${port}.`);
   });
 }
 
-start()
+start();
