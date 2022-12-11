@@ -113,6 +113,29 @@ async function start() {
         res.status(404).send({ message: 'Insufficient Funds.' });
       }
     }
+    if(event.type === "OrderReady"){
+      const db = mongo.db();
+      if(delivery._id !== null){
+        const deliveries = db.collection("deliveries");
+        const updatedDeliveryDoc = await deliveries.findOneAndUpdate({_id: new ObjectId(delivery._id)}, {$set: {status: "ready for pickup"}}, {returnDocument : "after"});
+        if(updatedDeliveryDoc === null){
+          res.status(404).send({ message: 'Delivery not found.' });
+        }
+        else{
+          const updatedDelivery = {
+            type : "OrderReady",
+            data : {...updatedDeliveryDoc.value}
+          }
+          axios.post('http://eventbus:4000/events', updatedDelivery).catch((err) => {
+            console.log(err.message);
+          });
+          res.status(200).json({delivery: updatedDelivery, message: 'Order ready for pickup.' });
+        }
+      }
+      else{
+        res.status(400).send({ message: 'Body not complete.' });
+      }
+    }
   });
 
   app.post('/api/delivery/create', verifyUserToken, (req: Request, res: Response) => {
