@@ -1,10 +1,11 @@
 import { ObjectId } from 'mongodb';
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { MongoClient } from 'mongodb';
 import { initRestaurants } from './initData';
 import cors from "cors";
 import logger from "morgan";
 import axios from "axios"
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { RestaurantComment, DriverComment, RestaurantCommentData, DriverCommentData, User, Restaurant, RestaurantReview, DriverReview, Driver } from './types/dataTypes';
 
 const app = express();
@@ -12,6 +13,28 @@ app.use(cors());
 app.use(express.json());
 app.use(logger("dev"));
 const port = 4009;
+
+function verifyUserToken(req: Request, res: Response, next: NextFunction) {
+  const authHeader: string | undefined = req.headers.authorization;
+  const token: string | undefined = authHeader?.split(" ")[1];
+  if (token === undefined) {
+    res.status(400).json({ message: "Token is missing from header" });
+    return
+  }
+  try {
+    if (process.env.ACCESS_TOKEN === undefined) {
+      res.status(500).json({ message: "access _token string missing" });
+      return;
+    }
+    const parsedToken: string | JwtPayload = jwt.verify(token, process.env.ACCESS_TOKEN) as { _id: string, iat: number };
+    req.body.userId = parsedToken._id; // dynamic here
+    next();
+  }
+  catch (err) {
+    res.status(500).json({ message: "Error verifying token" })
+    return
+  }
+}
 
 async function connectDB(): Promise<MongoClient> {
   const uri = process.env.DATABASE_URL;
@@ -80,7 +103,7 @@ async function start() {
   })
 
 
-  app.post("/api/review-comment/driver/create", async (req: Request, res: Response) => {
+  app.post("/api/review-comment/driver/create", verifyUserToken, async (req: Request, res: Response) => {
     const db = mongo.db()
     const { driverId, reviewId, content, userId } = req.body;
 
@@ -110,7 +133,7 @@ async function start() {
     }
   })
 
-  app.get("/api/review-comment/restaurant/get/:reviewId", async (req: Request, res: Response) => {
+  app.get("/api/review-comment/restaurant/get/:reviewId", verifyUserToken, async (req: Request, res: Response) => {
     const db = mongo.db()
     const reviewId = req.params.reviewId
 
