@@ -57,6 +57,33 @@ async function start() {
     res.send({ message: 'ok' });
   });
 
+  app.post('/events', async (req: Request, res: Response) => {
+
+    const event = req.body;
+    const {type, data}: {type: string, data: any} = event;
+
+    if(type == "OrderProcessed"){
+
+      const {status} : {status: string} = data;
+      if(status === "ordered"){
+
+        try{
+          const status_event = {
+            type: "OrderReady",
+            data: data
+          };
+          await axios.post('http://eventbus:4000/events', status_event);
+          
+          res.status(200).send({message: "Order is Ready"});
+          return;
+        }
+        catch (err: any) {
+          res.status(500).send({error: err.message});
+        }
+      }
+    }
+  });
+
   //creating restaurant document
   app.post('/api/restaurants/create', async (req: Request, res: Response) =>{
 
