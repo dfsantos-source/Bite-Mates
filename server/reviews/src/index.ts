@@ -1,7 +1,8 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { Driver_Review, Restaraunt_Review, Restaurant, Food, Driver, User } from './types/dataTypes';
 import { MongoClient } from 'mongodb';
 import { ObjectId } from 'mongodb';
+import jwt, { JwtPayload } from "jsonwebtoken";
 import cors from "cors";
 import logger from "morgan";
 import axios from 'axios';
@@ -24,6 +25,28 @@ async function connectDB(): Promise<MongoClient> {
   const mongo = new MongoClient(uri);
   await mongo.connect();
   return await Promise.resolve(mongo);
+}
+
+function verifyToken(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(" ")[1];
+  if (token === undefined) {
+    res.status(400).json({ message: "token is missing from header" });
+    return
+  }
+  try {
+    if (process.env.ACCESS_TOKEN === undefined) {
+      res.status(500).json({ message: "access _token string missing" });
+      return;
+    }
+    const user: string | JwtPayload = jwt.verify(token, process.env.ACCESS_TOKEN) as { _id: string, iat: number };
+    req.body.userId = user._id;
+    next();
+  }
+  catch (err) {
+    res.status(500).json("token error")
+    return
+  }
 }
 
 async function start() {
@@ -116,7 +139,7 @@ async function start() {
   });
 
   //CREATING NEW REVIEW FOR DRIVERID
-  app.post('/api/reviews/driver/create', async (req: Request, res: Response) => {
+  app.post('/api/reviews/driver/create', verifyToken, async (req: Request, res: Response) => {
     const { userId, driverId, content, rating} : {userId: ObjectId, driverId: ObjectId, content: string, rating: number} = req.body;
 
     if(userId == null || driverId == null || content == null || rating == null){
@@ -177,7 +200,7 @@ async function start() {
   });
 
   //CREATING NEW REVIEW FOR RESTAURANTID
-  app.post('/api/reviews/restaurant/create', async (req: Request, res: Response) => {
+  app.post('/api/reviews/restaurant/create', verifyToken, async (req: Request, res: Response) => {
     const { userId, restaurantId, content, rating} : {userId: ObjectId, restaurantId: ObjectId, content: string, rating: number} = req.body;
     if(userId == null || restaurantId == null || content == null || rating == null){
       res.status(400).send({message: "Body not complete"});
