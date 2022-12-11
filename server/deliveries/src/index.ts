@@ -101,7 +101,7 @@ async function start() {
   app.post('/events', async (req: Request, res: Response) => {
     const event = req.body;
     const delivery = event.data;
-    if(event.type === "OrderProcessed"){
+    if(event.type === "OrderProcessed" && delivery.type === "delivery"){
       if(delivery.status === "ordered"){
         delivery.userId = new ObjectId(delivery.userId);
         const db = mongo.db();
@@ -113,7 +113,7 @@ async function start() {
         res.status(404).send({ message: 'Insufficient Funds.' });
       }
     }
-    if(event.type === "OrderReady"){
+    if(event.type === "OrderReady" && delivery.type === "delivery"){
       const db = mongo.db();
       if(delivery._id !== null){
         const deliveries = db.collection("deliveries");
@@ -205,7 +205,7 @@ async function start() {
     }
   });
 
-  const eventSubscriptions = ["OrderProcessed"];
+  const eventSubscriptions = ["OrderProcessed", "OrderReady"];
   const eventURL = "http://deliveries:4001/events"
 
   await axios.post("http://eventbus:4000/subscribe", {

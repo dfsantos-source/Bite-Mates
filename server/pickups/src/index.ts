@@ -77,7 +77,7 @@ async function start() {
   app.post('/events', async (req: Request, res: Response) => {
     const event = req.body;
     const pickup = event.data;
-    if(event.type === "OrderProccessed"){
+    if(event.type === "OrderProccessed" && pickup.type === "pickup"){
       if(pickup.status === "ordered"){
         pickup.userId = new ObjectId(pickup.userId);
         const db = mongo.db();
@@ -89,7 +89,7 @@ async function start() {
         res.status(404).send({ message: 'Insufficient Funds.' });
       }
     }
-    if(event.type === "OrderReady"){
+    if(event.type === "OrderReady" && pickup.type === "pickup"){
       const db = mongo.db();
       if(pickup._id !== null){
         const pickups = db.collection("pickups");
