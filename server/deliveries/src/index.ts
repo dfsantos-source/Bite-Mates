@@ -215,6 +215,77 @@ async function start() {
     }
   });
 
+  app.get('/api/delivery/get/all/unassigned', async (req: Request, res: Response) => {
+    const db = mongo.db();
+    const deliveries = db.collection("deliveries");
+    const unassignedDeliveriesDoc = deliveries.find();
+    const unassignedDeliveries: any = []; 
+    await unassignedDeliveriesDoc.forEach(doc => {
+      if(doc.driverId === null){
+        unassignedDeliveries.push(doc);
+      }
+    });
+    if(unassignedDeliveries.length !== 0){
+      res.status(200).json({deliveries: unassignedDeliveries, message: 'Unassigned deliveries found.' });
+      return;
+    } 
+    else{
+      res.status(404).send({ message: 'No unassigned deliveries found' });
+      return;
+    }
+  });
+
+  app.get('/api/delivery/get/all/user', verifyUserToken, async (req: Request, res: Response) => {
+    const body = req.body;
+    const db = mongo.db();
+    console.log(req.body)
+    const deliveries = db.collection("deliveries");
+    if(body.userId !== null){
+      const userDeliveriesDoc = deliveries.find({userId: new ObjectId(body.userId)});
+      const userDeliveries: any = []; 
+      await userDeliveriesDoc.forEach(doc => {
+          userDeliveries.push(doc);
+      });
+      if(userDeliveries.length !== 0){
+        res.status(200).json({deliveries: userDeliveries, message: 'User deliveries found.' });
+        return;
+      } 
+      else{
+        res.status(404).send({ message: 'No user deliveries found' });
+        return;
+      }
+    }
+    else{
+      res.status(400).send({ message: 'Body not complete.' });
+      return;
+    }
+  });
+
+  app.get('/api/delivery/get/all/driver', verifyDriverToken, async (req: Request, res: Response) => {
+    const body = req.body;
+    const db = mongo.db();
+    const deliveries = db.collection("deliveries");
+    if(body.driverId !== null){
+      const driverDeliveriesDoc = deliveries.find({driverId: new ObjectId(body.driverId)});
+      const driverDeliveries: any = []; 
+      await driverDeliveriesDoc.forEach(doc => {
+          driverDeliveries.push(doc);
+      });
+      if(driverDeliveries.length !== 0){
+        res.status(200).json({deliveries: driverDeliveries, message: 'Driver deliveries found.' });
+        return;
+      } 
+      else{
+        res.status(404).send({ message: 'No driver deliveries found' });
+        return;
+      }
+    }
+    else{
+      res.status(400).send({ message: 'Body not complete.' });
+      return;
+    }
+  });
+
   const eventSubscriptions = ["OrderProcessed", "OrderReady"];
   const eventURL = "http://deliveries:4001/events"
 
