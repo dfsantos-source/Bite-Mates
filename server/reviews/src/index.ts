@@ -136,6 +136,8 @@ async function start() {
         res.status(500).send({error: err.message});
       }
     }
+    res.status(200).json({});
+    return;
   });
 
   //CREATING NEW REVIEW FOR DRIVERID
@@ -222,7 +224,7 @@ async function start() {
       const review: Restaraunt_Review = {
         _id,
         userId: new ObjectId(userId),
-        restaurantId: new ObjectId(userId),
+        restaurantId: new ObjectId(restaurantId),
         content,
         rating
       };

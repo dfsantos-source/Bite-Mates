@@ -123,6 +123,8 @@ async function start(){
       console.log(req.body.type);
       res.send({});
     }
+    res.status(200).json({});
+    return;
   });
 
   app.put('/api/user/favorites/add', verifyToken, async (req: Request, res: Response) => {

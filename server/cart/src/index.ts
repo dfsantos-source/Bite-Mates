@@ -344,7 +344,7 @@ async function start() {
         return;
       }
     }
-      res.status(200).json({});
+      res.status(200).json({message: "Cart service got an event that it was not subscribed to"});
       return;
   });
 

@@ -314,7 +314,7 @@ async function start() {
           restaurantMetric.totalRating = restaurantMetric.totalRating + rating;
           restaurantMetric.averageRating = restaurantMetric.totalRating / restaurantMetric.numReviews
 
-          const updateResult = await restaurantMetricsDb.updateOne({ restaurantId: restaurantId }, { $set: { numReviews: restaurantMetric.numReviews, totalRating: restaurantMetric.totalRating, averageRating: restaurantMetric.averageRating } })
+          const updateResult = await restaurantMetricsDb.updateOne({ restaurantId: new ObjectId(restaurantId) }, { $set: { numReviews: restaurantMetric.numReviews, totalRating: restaurantMetric.totalRating, averageRating: restaurantMetric.averageRating } })
 
           res.status(200).json({ message: "restaurant metrics updated" });
           return;
@@ -341,7 +341,7 @@ async function start() {
 
           const driverMetricsDb = db.collection("driverMetrics");
 
-          const driverMetric = await driverMetricsDb.findOne({ restaurantId: new ObjectId(driverId) }) as RestaurantMetrics
+          const driverMetric = await driverMetricsDb.findOne({ driverId: new ObjectId(driverId) }) as DriverMetrics
 
           if (driverMetric === null) {
             res.status(404).json({ message: "driver not found" })
@@ -352,7 +352,7 @@ async function start() {
           driverMetric.totalRating = driverMetric.totalRating + rating;
           driverMetric.averageRating = driverMetric.totalRating / driverMetric.numReviews
 
-          const updateResult = await driverMetricsDb.updateOne({ restaurantId: driverId }, { $set: { numReviews: driverMetric.numReviews, totalRating: driverMetric.totalRating, averageRating: driverMetric.averageRating } })
+          const updateResult = await driverMetricsDb.updateOne({ restaurantId: new ObjectId(driverId) }, { $set: { numReviews: driverMetric.numReviews, totalRating: driverMetric.totalRating, averageRating: driverMetric.averageRating } })
 
           res.status(200).json({ message: "restaurant metrics updated" });
           return;

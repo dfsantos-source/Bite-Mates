@@ -82,6 +82,8 @@ async function start() {
         }
       }
     }
+    res.status(200).json({});
+    return;
   });
 
   //creating restaurant document

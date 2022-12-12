@@ -64,7 +64,11 @@ app.post("/events", async (req: Request, res: Response) => {
     if (type in eventSubscriptions) {
       let subscribers = eventSubscriptions[type]
       for (let i = 0; i < subscribers.length; i++) {
-        await axios.post(subscribers[i], req.body);
+        try {
+          await axios.post(subscribers[i], req.body);
+        } catch(err: any) {
+          console.log(err.message);
+        }
       }
 
       res.status(200).json(`sent event ${type} to subscribers`)

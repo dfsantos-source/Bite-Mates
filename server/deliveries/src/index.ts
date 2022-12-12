@@ -10,6 +10,7 @@ import logger from 'morgan';
 const app = express();
 app.use(express.json());
 app.use(cors());
+app.use(logger('dev'));
 const port = 4001;
 
 
@@ -126,14 +127,7 @@ async function start() {
           return;
         }
         else{
-          const updatedDelivery = {
-            type : "OrderReady",
-            data : {...updatedDeliveryDoc.value}
-          }
-          axios.post('http://eventbus:4000/events', updatedDelivery).catch((err) => {
-            console.log(err.message);
-          });
-          res.status(200).json({delivery: updatedDelivery, message: 'Order ready for pickup.' });
+          res.status(200).json({delivery: updatedDeliveryDoc.value, message: 'Order ready for pickup.' });
           return;
         }
       }
@@ -142,6 +136,8 @@ async function start() {
         return;
       }
     }
+    res.status(200).json({});
+    return;
   });
 
   app.post('/api/delivery/create', verifyUserToken, (req: Request, res: Response) => {
