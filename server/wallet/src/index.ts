@@ -15,7 +15,7 @@ function verifyUserToken(req: Request, res: Response, next: NextFunction) {
   const token: string | undefined = authHeader?.split(" ")[1];
   if (token === undefined) {
     res.status(400).json({ message: "Token is missing from header" });
-    return
+    return;
   }
   try {
     if (process.env.ACCESS_TOKEN === undefined) {
@@ -28,7 +28,7 @@ function verifyUserToken(req: Request, res: Response, next: NextFunction) {
   }
   catch (err) {
     res.status(500).json({message: "Error verifying token"})
-    return
+    return;
   }
 }
 
@@ -53,7 +53,7 @@ async function start() {
     res.send({ message: 'ok' });
   });
 
-  app.post('/events', verifyUserToken, async (req: Request, res: Response) => {
+  app.post('/events', async (req: Request, res: Response) => {
     const event = req.body;
     const db = mongo.db();
     const wallets = db.collection("wallets");
@@ -76,6 +76,7 @@ async function start() {
       }
       catch{
         res.status(404).send({ message: 'Wallet or User not found.' });
+        return;
       }
 
       const processedDelivery = {
@@ -88,6 +89,7 @@ async function start() {
       });
 
       res.status(200).json({order: processedDelivery , message: 'Order processed successfully.' });
+      return;
     }
     if(event.type === "UserCreated"){
       const user = event.data;
@@ -97,6 +99,7 @@ async function start() {
       }
       wallets.insertOne(newWallet);
       res.status(200).json({wallet: newWallet , message: 'Wallet created successfully.' });
+      return;
     }
   });
 
@@ -108,6 +111,7 @@ async function start() {
       const wallet = await wallets.findOne({userId: new ObjectId(body.userId)});
       if(wallet === null){
         res.status(404).send({ message: 'Wallet or User not found.' });
+        return;
       }
       else{ 
         const updatedWallet = await wallets.findOneAndUpdate({userId: new ObjectId(body.userId)}, {$inc: {balance: body.balance}}, {returnDocument : "after"});
@@ -122,10 +126,12 @@ async function start() {
           console.log(err.message);
         });
         res.status(200).json({wallet: updatedWalletEvent, message: 'Balance successfully added.' });
+        return;
       }
     }
     else{
       res.status(400).send({ message: 'Userid not found.' });
+      return;
     }
   });
 
@@ -137,13 +143,16 @@ async function start() {
       const wallet = await wallets.findOne({userId: new ObjectId(userid)});
       if(wallet === null){
         res.status(404).send({ message: 'Wallet or User not found.' });
+        return;
       }
       else{
         res.status(200).json({wallet: wallet, message: 'Wallet found successfully.' });
+        return;
       }
     }
     else{
       res.status(400).send({ message: 'Userid not found.' });
+      return;
     }
   });
 

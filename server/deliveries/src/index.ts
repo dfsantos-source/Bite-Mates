@@ -108,9 +108,11 @@ async function start() {
         const deliveries = db.collection("deliveries");
         await deliveries.insertOne(delivery);
         res.status(201).json({delivery: delivery, message: "Delivery successfully Added"});
+        return;
       }
       else{
         res.status(404).send({ message: 'Insufficient Funds.' });
+        return;
       }
     }
     if(event.type === "OrderReady" && delivery.type === "delivery"){
@@ -120,6 +122,7 @@ async function start() {
         const updatedDeliveryDoc = await deliveries.findOneAndUpdate({_id: new ObjectId(delivery._id)}, {$set: {status: "ready for pickup"}}, {returnDocument : "after"});
         if(updatedDeliveryDoc === null){
           res.status(404).send({ message: 'Delivery not found.' });
+          return;
         }
         else{
           const updatedDelivery = {
@@ -130,10 +133,12 @@ async function start() {
             console.log(err.message);
           });
           res.status(200).json({delivery: updatedDelivery, message: 'Order ready for pickup.' });
+          return;
         }
       }
       else{
         res.status(400).send({ message: 'Body not complete.' });
+        return;
       }
     }
   });
@@ -149,9 +154,11 @@ async function start() {
         console.log(err.message);
       });
       res.status(201).json({delivery: delivery, message: "Delivery successfully Created"});
+      return;
     }
     else{
       res.status(400).send({ message: 'Body not complete.' });
+      return;
     }
   });
 
@@ -163,6 +170,7 @@ async function start() {
       const updatedDeliveryDoc = await deliveries.findOneAndUpdate({_id: new ObjectId(body._id)}, {$set: {driverId: new ObjectId(body.driverId), status: "in transit"}}, {returnDocument : "after"});
       if(updatedDeliveryDoc === null){
         res.status(404).send({ message: 'Delivery not found.' });
+        return;
       }
       else{
         const updatedDelivery = {
@@ -173,10 +181,12 @@ async function start() {
           console.log(err.message);
         });
         res.status(200).json({delivery: updatedDelivery, message: 'Driver successfully assigned.' });
+        return;
       }
     }
     else{
       res.status(400).send({ message: 'Body not complete.' });
+      return;
     }
   });
 
@@ -188,6 +198,7 @@ async function start() {
       const updatedDeliveryDoc = await deliveries.findOneAndUpdate({_id: new ObjectId(body._id)}, {$set: {status: "delivered"}}, {returnDocument : "after"});
       if(updatedDeliveryDoc === null){
         res.status(404).send({ message: 'Delivery not found.' });
+        return;
       }
       else{
         const updatedDelivery = {
@@ -198,10 +209,12 @@ async function start() {
           console.log(err.message);
         });
         res.status(200).json({delivery: updatedDelivery, message: 'Delivery has been completed.' });
+        return;
       }
     }
     else{
       res.status(400).send({ message: 'Body not complete.' });
+      return;
     }
   });
 

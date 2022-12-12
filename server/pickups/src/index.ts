@@ -84,9 +84,11 @@ async function start() {
         const pickups = db.collection("pickups");
        await pickups.insertOne(pickup);
         res.status(201).json({pickup: pickup, message: "Pickup successfully Added"});
+        return;
       }
       else{
         res.status(404).send({ message: 'Insufficient Funds.' });
+        return;
       }
     }
     if(event.type === "OrderReady" && pickup.type === "pickup"){
@@ -96,6 +98,7 @@ async function start() {
         const updatedPickupDoc = await pickups.findOneAndUpdate({_id: new ObjectId(pickup._id)}, {$set: {status: "ready for pickup"}}, {returnDocument : "after"});
         if(updatedPickupDoc === null){
           res.status(404).send({ message: 'Pickup not found.' });
+          return;
         }
         else{
           const updatedPickup = {
@@ -106,10 +109,12 @@ async function start() {
             console.log(err.message);
           });
           res.status(200).json({pickup: updatedPickup, message: 'Order ready for pickup.' });
+          return;
         }
       }
       else{
         res.status(400).send({ message: 'Body not complete.' });
+        return;
       }
     }
   });
@@ -125,9 +130,11 @@ async function start() {
         console.log(err.message);
       });
       res.status(201).json({pickup: pickup, message: "Pickup successfully Created"});
+      return;
     }
     else{
       res.status(400).send({ message: 'Body not complete.' });
+      return;
     }
   });  
 
@@ -139,6 +146,7 @@ async function start() {
       const updatedPickupDoc = await pickups.findOneAndUpdate({_id: new ObjectId(body._id)}, {$set: {status: "pickedup"}}, {returnDocument : "after"});
       if(updatedPickupDoc === null){
         res.status(404).send({ message: 'Pickup not found.' });
+        return;
       }
       else{
         const updatedPickup = {
@@ -149,10 +157,12 @@ async function start() {
           console.log(err.message);
         });
         res.status(200).json({pickup: updatedPickup, message: 'Pickup has been completed.' });
+        return;
       }
     }
     else{
       res.status(400).send({ message: 'Body not complete.' });
+      return;
     }
   });
 
