@@ -21,7 +21,7 @@ console.log(process.env.DATABASE_URL);
 
 const MESSAGE_MAP: TYPE_TO_MESSAGE_MAP = {
   payment_failure: `You have insufficient funds, please add more to your wallet to make a purchase`,
-  payment_success: `Your payment has been received, thank you for ordering from BeFake!`,
+  payment_success: `Your payment has been received and funds have been deducted from your account`,
   delivery_success: `Your food has arrived at your residential area! Enjoy!`,
   pickup_success: `You have successfully picked up your food! Enjoy!`,
   wallet_success: `Your account balance has been updated!`,
@@ -322,32 +322,6 @@ async function start() {
       }
     }
 
-    if (type === 'RestaurantCreated') {
-      const { data } = req.body;
-      const { _id, name, address, type, foods } = data;
-      if (_id == undefined || name == undefined || address == undefined || type == undefined || foods == undefined) {
-        res.status(400).json({ message: 'Event data incomplete' })
-        return;
-      }
-      try {
-        const db = mongo.db()
-        const newRestaurant: Restaurant = {
-          _id,
-          name,
-          address,
-          type,
-          foods
-        }
-        const restaurants = db.collection("restaurants")
-        await restaurants.insertOne(newRestaurant)
-        res.status(200).json({message: "Successfully handled RestaurantCreated event inside Cart service"});
-        return;
-      } catch (error) {
-        res.status(500).json(error)
-        return;
-      }
-    }
-
     // json a notification to the user that their order was placed,
     // this could either be a pickup or delivery
     if (type === 'OrderCreated') {
@@ -384,15 +358,24 @@ async function start() {
           userId,
           notificationMessage
         });
-        if (status === "ordered") { 
-          const notificationMessage: string = orderType === "delivery" ? MESSAGE_MAP.delivery_success :  MESSAGE_MAP.pickup_success;
-          await axios.post(`http://notifications:4006/api/notification/user/create`, {
-            userId,
-            notificationMessage
-          });
-        } 
       }
       res.status(200).json({message: "Successfully handled OrderProcessed event in Notification Service"});
+      return;
+    }
+
+    if (type === 'OrderCompleted') {
+      const { data } = req.body;
+      const { userId }: {userId: string } = data;
+      const orderType: string = data.type;
+      const doNotDisturb: boolean = await hasDoNotDisturb(mongo, 'user', userId);
+      if (!doNotDisturb) {
+        const notificationMessage: string = orderType === "delivery" ? MESSAGE_MAP.delivery_success :  MESSAGE_MAP.pickup_success;
+        await axios.post(`http://notifications:4006/api/notification/user/create`, {
+          userId,
+          notificationMessage
+        });
+      }
+      res.status(200).json({message: "Successfully handled OrderCompleted event in Notification Service"});
       return;
     }
 
@@ -450,7 +433,7 @@ async function start() {
     return;
   });
 
-  const eventSubscriptions = ["UserCreated", "DriverCreated", "MoneyAdded", "DriverAssigned", "OrderProcessed", "RestaurantCreated", "OrderReady", "OrderCreated"];
+  const eventSubscriptions = ["UserCreated", "DriverCreated", "MoneyAdded", "DriverAssigned", "OrderProcessed", "OrderReady", "OrderCreated", "OrderCompleted"];
   const eventURL = "http://notifications:4006/events"
 
   await axios.post("http://eventbus:4000/subscribe", {
