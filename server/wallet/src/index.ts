@@ -109,7 +109,7 @@ async function start() {
       if(wallet === null){
         res.status(404).send({ message: 'Wallet or User not found.' });
       }
-      else{
+      else{ 
         const updatedWallet = await wallets.findOneAndUpdate({userId: new ObjectId(body.userId)}, {$inc: {balance: body.balance}}, {returnDocument : "after"});
         console.log(updatedWallet);
 
