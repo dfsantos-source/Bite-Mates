@@ -1,7 +1,8 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { ObjectId } from 'mongodb';
 import { MongoClient } from 'mongodb';
 import { Favorites, Restaurant, Food, User } from './types/dataTypes';
+import jwt, { JwtPayload } from "jsonwebtoken";
 import logger from 'morgan';
 import axios from 'axios';
 import cors from 'cors';
@@ -23,6 +24,28 @@ async function connectDB(): Promise<MongoClient> {
   const mongo = new MongoClient(uri);
   await mongo.connect();
   return await Promise.resolve(mongo);
+}
+
+function verifyToken(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(" ")[1];
+  if (token === undefined) {
+    res.status(400).json({ message: "token is missing from header" });
+    return
+  }
+  try {
+    if (process.env.ACCESS_TOKEN === undefined) {
+      res.status(500).json({ message: "access _token string missing" });
+      return;
+    }
+    const user: string | JwtPayload = jwt.verify(token, process.env.ACCESS_TOKEN) as { _id: string, iat: number };
+    req.body.userId = user._id;
+    next();
+  }
+  catch (err) {
+    res.status(500).json("token error")
+    return
+  }
 }
 
 async function start(){
@@ -102,7 +125,7 @@ async function start(){
     }
   });
 
-  app.put('/api/user/favorites/add', async (req: Request, res: Response) => {
+  app.put('/api/user/favorites/add', verifyToken, async (req: Request, res: Response) => {
     const {userId, restaurantId} : {userId: string, restaurantId: string } = req.body;
 
     if(userId == null || restaurantId == null){
@@ -159,8 +182,8 @@ async function start(){
 
   });
 
-  app.get('/api/user/favorites/get/:userId', async (req: Request, res: Response) => {
-    const {userId} = req.params;
+  app.get('/api/user/favorites/get', verifyToken, async (req: Request, res: Response) => {
+    const {userId} = req.body;
 
     if(userId == null){
       res.status(400).send({message: "Body not complete"});
