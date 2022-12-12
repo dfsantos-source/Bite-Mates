@@ -67,7 +67,7 @@ async function start() {
 
     const restaurantOrders = db.collection("restaurantOrders");
 
-    const result = restaurantOrders.find()
+    const result = restaurantOrders.find().limit(10)
 
     const restaurantIds: ObjectId[] = []
 
