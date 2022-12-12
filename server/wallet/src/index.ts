@@ -10,28 +10,6 @@ app.use(express.json());
 app.use(cors());
 const port = 4012;
 
-function verifyDriverToken(req: Request, res: Response, next: NextFunction) {
-  const authHeader: string | undefined = req.headers.authorization;
-  const token: string | undefined = authHeader?.split(" ")[1];
-  if (token === undefined) {
-    res.status(400).json({ message: "Token is missing from header" });
-    return
-  }
-  try {
-    if (process.env.ACCESS_TOKEN === undefined) {
-      res.status(500).json({ message: "access _token string missing" });
-      return;
-    }
-    const parsedToken: string | JwtPayload = jwt.verify(token, process.env.ACCESS_TOKEN) as { _id: string, iat: number };
-    req.body.driverId = parsedToken._id; // dynamic here
-    next();
-  }
-  catch (err) {
-    res.status(500).json({message: "Error verifying token"})
-    return
-  }
-}
-
 function verifyUserToken(req: Request, res: Response, next: NextFunction) {
   const authHeader: string | undefined = req.headers.authorization;
   const token: string | undefined = authHeader?.split(" ")[1];
@@ -77,10 +55,10 @@ async function start() {
 
   app.post('/events', verifyUserToken, async (req: Request, res: Response) => {
     const event = req.body;
-    const delivery = event.data;
     const db = mongo.db();
     const wallets = db.collection("wallets");
     if(event.type === "OrderCreated"){
+      const delivery = event.data;
       let curStatus = "ordered";
       try{
         const wallet = await wallets.findOne({userId: new ObjectId(delivery.userId)});
@@ -110,6 +88,15 @@ async function start() {
       });
 
       res.status(200).json({order: processedDelivery , message: 'Order processed successfully.' });
+    }
+    if(event.type === "UserCreated"){
+      const user = event.data;
+      const newWallet = {
+        userId: user._id,
+        balance: 100
+      }
+      wallets.insertOne(newWallet);
+      res.status(200).json({wallet: newWallet , message: 'Wallet created successfully.' });
     }
   });
 
@@ -160,7 +147,7 @@ async function start() {
     }
   });
 
-  const eventSubscriptions = ["OrderCreated"];
+  const eventSubscriptions = ["OrderCreated", "UserCreated"];
   const eventURL = "http://wallet:4012/events"
 
   await axios.post("http://eventbus:4000/subscribe", {
