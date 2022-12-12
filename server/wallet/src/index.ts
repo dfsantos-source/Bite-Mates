@@ -3,7 +3,7 @@ import { MongoClient, ObjectId } from 'mongodb';
 import axios from 'axios';
 import cors from 'cors';
 import jwt, { JwtPayload } from "jsonwebtoken";
-
+import logger from 'morgan';
 
 const app = express();
 app.use(express.json());
