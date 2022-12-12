@@ -7,16 +7,6 @@ export default function login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleEmailChange = (e: any) => {
-    e.preventDefault();
-    setEmail(e.target.value);
-  }
-
-  const handlePasswordChange = (e: any) => {
-    e.preventDefault();
-    setPassword(e.target.value);
-  }
-
   const LoginForm: any = (props: any) => {
     const type = props.type;
     const title: string = type === 'user' ? 
@@ -24,9 +14,9 @@ export default function login() {
     return (
       <div className='mt-4'>
         <div>{title}</div>
-        <input onChange={handleEmailChange} value={email} className='mb-2' type="text" name="" id="" placeholder='email'/>
+        <input onChange={e => setEmail(e.target.value)} value={email} className='mb-2' type="text" name="" id="" placeholder='email'/>
         <br></br>
-        <input onChange={handlePasswordChange} value={password} type="text" name="" id="" placeholder='password'/>
+        <input onChange={e => setPassword(e.target.value)} value={password} type="text" name="" id="" placeholder='password'/>
 
         <br></br>
         <button type="button" className="btn btn-primary mt-2" onClick={handleLoginClick}>Login</button>
