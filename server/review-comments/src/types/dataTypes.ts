@@ -53,7 +53,7 @@ export interface User {
     email: string,
     name: string,
     address: string,
-    do_not_disturb: boolean
+    doNotDisturb: boolean
 }
 
 export interface Driver {

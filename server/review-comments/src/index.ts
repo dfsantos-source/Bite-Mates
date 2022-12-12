@@ -210,7 +210,7 @@ async function start() {
     const event = req.body;
 
     if (event.type === "UserCreated") {
-      const { _id, name, address, email, do_not_disturb } = event.data;
+      const { _id, name, address, email, doNotDisturb } = event.data;
 
       if (_id === undefined || name === undefined || address === undefined || email === undefined) {
         res.status(400).json({ message: 'event body incomplete' })
@@ -224,7 +224,7 @@ async function start() {
             name,
             address,
             email,
-            do_not_disturb
+            doNotDisturb
           }
 
           const users = db.collection("users")
@@ -287,7 +287,7 @@ async function start() {
             doNotDisturb,
           }
 
-          const drivers = db.collection("drivvers")
+          const drivers = db.collection("drivers")
 
           const result = await drivers.insertOne(newDriver)
 
