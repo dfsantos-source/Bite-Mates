@@ -163,6 +163,32 @@ async function start() {
     }
   });
 
+  app.get('/api/pickup/get/all/user', verifyUserToken, async (req: Request, res: Response) => {
+    const body = req.body;
+    const db = mongo.db();
+    console.log(req.body)
+    const pickups = db.collection("pickups");
+    if(body.userId !== null){
+      const userPickupsDoc = pickups.find({userId: new ObjectId(body.userId)});
+      const userPickups: any = []; 
+      await userPickupsDoc.forEach(doc => {
+          userPickups.push(doc);
+      });
+      if(userPickups.length !== 0){
+        res.status(200).json({pickups: userPickups, message: 'User pickups found.' });
+        return;
+      } 
+      else{
+        res.status(404).send({ message: 'No user pickups found' });
+        return;
+      }
+    }
+    else{
+      res.status(400).send({ message: 'Body not complete.' });
+      return;
+    }
+  });
+
   const eventSubscriptions = ["OrderProcessed", "OrderReady"];
   const eventURL = "http://pickups:4007/events"
 
