@@ -24,6 +24,14 @@ const UnassignedDeliveries = () => {
     fetchUnassignedDeliveries();
   }, []);
 
+    async function assignDriver(driverId, deliveryId){
+        const data = {
+            _id : deliveryId,
+            driverId : driverId 
+        }
+        await axios.put('http://localhost:4001/api/delivery/driver/assign', data);
+    }
+
   return (
     <div>
       <h1 style={{ fontSize: '2em', marginBottom: '20px' }}>Unassigned Deliveries</h1>
@@ -39,6 +47,13 @@ const UnassignedDeliveries = () => {
             <p>
               <strong>Recipient:</strong> {delivery.userId}
             </p>
+            <button
+                onClick={() => {
+                    assignDriver(delivery.driverId, delivery._id);
+                }}
+                >
+                Assign Delivery
+            </button>
           </li>
         ))}
       </ul>
