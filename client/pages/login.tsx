@@ -17,7 +17,6 @@ export default function login() {
         <input onChange={e => setEmail(e.target.value)} value={email} className='mb-2' type="text" name="" id="" placeholder='email'/>
         <br></br>
         <input onChange={e => setPassword(e.target.value)} value={password} type="text" name="" id="" placeholder='password'/>
-
         <br></br>
         <button type="button" className="btn btn-primary mt-2" onClick={handleLoginClick}>Login</button>
       </div>
@@ -27,13 +26,23 @@ export default function login() {
   const handleLoginClick = async(e: any) => {
     const query = loginType === 'user' ? 'users' : 'drivers';
     const port = loginType === 'user' ? 4011 : 4002;
-    await axios.post(
-      `http://localhost:${port}/api/${query}/login`,
+    const url = `http://localhost:${port}/api/${query}/login`;
+    setEmail('');
+    setPassword('');
+    const res = await axios.post(
+      url,
       {
         email,
         password
       }
     );
+    if (res.status === 200) {
+      alert('Login sucessful');
+    } else {
+      alert('Error logging in');
+    }
+    console.log(res);
+    console.log(res.data);
   }
 
   const handleUserClick = (e: any) => {
@@ -48,7 +57,7 @@ export default function login() {
     if (loginType === '') {
       return  '';
     } 
-    return <LoginForm type={loginType}></LoginForm>;
+    return LoginForm({type: loginType});
   }
 
   const form = getForm();
