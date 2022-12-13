@@ -62,7 +62,7 @@ async function start() {
   const mongo = await connectDB();
   await initDB(mongo)
 
-  app.get("/api/metrics/popular/restaurants", async (req: Request, res: Response) => {
+  app.get("/api/metrics/restaurants/popular/get", async (req: Request, res: Response) => {
     const db = mongo.db();
 
     const restaurantOrders = db.collection("restaurantOrders");
@@ -96,6 +96,86 @@ async function start() {
 
     res.status(200).json(popularRestaurants);
 
+  })
+
+  app.get("/api/metrics/user/get/:userId", async (req, res) => {
+    const { userId } = req.params
+    if (userId === undefined) {
+      res.status(400).json({ message: "body incomplete" })
+      return;
+    }
+    else {
+      try {
+        const db = mongo.db();
+        const userMetricsDb = db.collection("userMetrics");
+
+        const userMetrics: User | null = await userMetricsDb.findOne({ userId: new ObjectId(userId) }) as User | null
+
+        if (userMetrics === null) {
+          res.status(404).json({ message: "could not find User metric" })
+          return;
+        }
+
+        res.status(200).json(userMetrics);
+        return;
+      } catch (error) {
+        res.status(500).json(error);
+      }
+    }
+  })
+
+  app.get("/api/metrics/restaurant/get/:restaurantId", async (req, res) => {
+    const { restaurantId } = req.params
+    if (restaurantId === undefined) {
+      res.status(400).json({ message: "body incomplete" })
+      return;
+    }
+    else {
+      try {
+        const db = mongo.db();
+        const restaurantMetricsDb = db.collection("restaurantMetrics");
+
+        const restaurantMetrics: Restaurant | null = await restaurantMetricsDb.findOne({ restaurantId: new ObjectId(restaurantId) }) as Restaurant | null
+
+        if (restaurantMetrics === null) {
+          res.status(404).json({ message: "could not find Restaurant metric" })
+          return;
+        }
+
+        res.status(200).json(restaurantMetrics);
+        return;
+      } catch (error) {
+        res.status(500).json(error);
+        return;
+      }
+    }
+  })
+
+  app.get("/api/metrics/driver/get/:driverId", async (req, res) => {
+    const { driverId } = req.params
+    if (driverId === undefined) {
+      res.status(400).json({ message: "body incomplete" })
+      return;
+    }
+    else {
+      try {
+        const db = mongo.db();
+        const driverMetricsDb = db.collection("driverMetrics");
+
+        const driverMetrics: Driver | null = await driverMetricsDb.findOne({ driverId: new ObjectId(driverId) }) as Driver | null
+
+        if (driverMetrics === null) {
+          res.status(404).json({ message: "could not find Driver metric" })
+          return;
+        }
+
+        res.status(200).json(driverMetrics);
+        return;
+      } catch (error) {
+        res.status(500).json(error);
+        return;
+      }
+    }
   })
 
 

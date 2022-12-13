@@ -6,6 +6,7 @@ import logger from "morgan";
 import axios from 'axios';
 import jwt, { JwtPayload } from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import { UserCreatedEvent } from './types/eventTypes';
 
 
 const app = express();
@@ -89,10 +90,10 @@ async function start() {
 
       const token = jwt.sign({ _id: id }, process.env.ACCESS_TOKEN, {});
 
-      const event = {
+      const event: UserCreatedEvent = {
         type: "UserCreated",
         data: {
-          _id: user._id,
+          _id: id,
           name: user.name,
           email: user.email,
           address: user.address,
@@ -189,6 +190,29 @@ async function start() {
       }
 
     }
+  })
+
+  app.put("/api/user/dnd/update", verifyToken, async (req, res) => {
+    const { userId, doNotDisturb } = req.body
+    if (userId === undefined || doNotDisturb === undefined) {
+      res.status(400).json({ message: "incomplete body" });
+      return;
+    }
+    else {
+      try {
+        const db = mongo.db()
+        const userDb = db.collection("users")
+
+        const result = await userDb.updateOne({ userId: new ObjectId(userId) }, { $set: { doNotDisturb: doNotDisturb } });
+
+        res.status(200).json({ message: "Updated user do not disturb" })
+        return;
+      } catch (error) {
+        res.status(500).json({ message: "server error: could not update user" })
+        return;
+      }
+    }
+
   })
 
   app.listen(port, () => {
