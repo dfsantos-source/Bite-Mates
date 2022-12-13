@@ -1,22 +1,28 @@
-import React, { useState } from 'react'
-import axios from 'axios';
+import React, { ReactElement, useState } from 'react'
+import axios, { AxiosResponse } from 'axios';
+
+export interface LoginFormProps {
+  type: string
+}
+
+type LoginForm = "" | React.ReactElement<any, any> | null;
 
 export default function login() {
 
-  const [loginType, setLoginType] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [loginType, setLoginType] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
 
-  const LoginForm: any = (props: any) => {
-    const type = props.type;
+  const LoginForm: React.FunctionComponent<LoginFormProps> = (props: LoginFormProps) => {
+    const type: string = props.type;
     const title: string = type === 'user' ? 
     'User Login' : 'Driver Login';   
     return (
       <div className='mt-4'>
         <div>{title}</div>
-        <input onChange={e => setEmail(e.target.value)} value={email} className='mb-2' type="text" name="" id="" placeholder='email'/>
+        <input onChange={(e): void => setEmail(e.target.value)} value={email} className='mb-2' type="text" name="" id="" placeholder='email'/>
         <br></br>
-        <input onChange={e => setPassword(e.target.value)} value={password} type="text" name="" id="" placeholder='password'/>
+        <input onChange={(e): void => setPassword(e.target.value)} value={password} type="text" name="" id="" placeholder='password'/>
         <br></br>
         <button type="button" className="btn btn-primary mt-2" onClick={handleLoginClick}>Login</button>
       </div>
@@ -24,43 +30,42 @@ export default function login() {
   }
 
   const handleLoginClick = async(e: any) => {
-    const query = loginType === 'user' ? 'users' : 'drivers';
-    const port = loginType === 'user' ? 4011 : 4002;
-    const url = `http://localhost:${port}/api/${query}/login`;
+    const query: string = loginType === 'user' ? 'users' : 'drivers';
+    const port: number = loginType === 'user' ? 4011 : 4002;
+    const url: string = `http://localhost:${port}/api/${query}/login`;
     setEmail('');
     setPassword('');
-    const res = await axios.post(
-      url,
-      {
-        email,
-        password
-      }
-    );
-    if (res.status === 200) {
+    try {
+      const res: AxiosResponse = await axios.post(
+        url,
+        {
+          email,
+          password
+        }
+      );
       alert('Login sucessful');
-    } else {
+      console.log(res.data)
+    } catch (err) {
       alert('Error logging in');
     }
-    console.log(res);
-    console.log(res.data);
   }
 
-  const handleUserClick = (e: any) => {
+  const handleUserClick: () => void = () => {
     setLoginType('user');
   }
 
-  const handleDriverClick = (e: any) => {
+  const handleDriverClick: () => void = () => {
     setLoginType('driver');
   }
 
-  const getForm = () => {
+  const getForm: () => LoginForm = () => {
     if (loginType === '') {
       return  '';
     } 
     return LoginForm({type: loginType});
   }
 
-  const form = getForm();
+  const form: LoginForm = getForm();
 
   return (
     <div>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import axios from 'axios';
+import React, { useState, useEffect, ReactElement } from 'react'
+import axios, { AxiosResponse } from 'axios';
 import { config } from 'process';
 
 export interface Cart {
@@ -17,31 +17,31 @@ export interface CartItem {
     quantity: number
 }
 
-export default function cart() {
+export default function cart(): ReactElement {
   const [cart, setCart] = useState <Cart | null>(null);
   const [quantities, setQuantities] = useState <any>({});
   const [totalPrice, setTotalPrice] = useState <number>(0);
-  const [orderType, setOrderType] = useState ('delivery');
+  const [orderType, setOrderType] = useState <string>('delivery');
 
-  useEffect(() => {
-    const getData = async() => {
+  useEffect((): void => {
+    const getData: () => Promise<void> = async() => {
         const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2Mzk2ZGI1MDk2YmRiNzhjZjlmNjRmYjUiLCJpYXQiOjE2NzA4MzA5Mjh9.TI7_z2KnjmXQKEIb23jo3Mwu6ABSzs0FFFIwWWTI0_c';
         const config = {
             headers: { Authorization: `Bearer ${token}` }
         };
         try {
-            const res = await axios.get( 
+            const res: AxiosResponse = await axios.get( 
                 'http://localhost:4003/api/cart/get',
                 config
             );
             // console.log(res);
-            const { data } = res;
+            const { data }: { data: Cart } = res;
             // console.log(data);
             setCart(data);
 
-            let totalPrice = 0;
-            const newQuantities: any = {};
-            data.items.forEach((item: any) => {
+            let totalPrice: number = 0;
+            const newQuantities: {[key: string]: number } = {};
+            data.items.forEach((item: CartItem) => {
                 newQuantities[item.name] = item.quantity;
                 totalPrice += (item.price * item.quantity);
             })
@@ -55,23 +55,23 @@ export default function cart() {
     getData();
   }, []);
 
-  const handlePlaceOrderClick = async() => {
+  const handlePlaceOrderClick: () => Promise<void> = async() => {
     if (cart != null) {
 
-        let totalPrice = 0;
-        cart.items.forEach(item => {
+        let totalPrice: number = 0;
+        cart.items.forEach((item: CartItem) => {
             totalPrice += item.price;
         })
 
 
-        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2Mzk2ZGI1MDk2YmRiNzhjZjlmNjRmYjUiLCJpYXQiOjE2NzA4MzA5Mjh9.TI7_z2KnjmXQKEIb23jo3Mwu6ABSzs0FFFIwWWTI0_c';
-        const config = {
+        const token: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2Mzk2ZGI1MDk2YmRiNzhjZjlmNjRmYjUiLCJpYXQiOjE2NzA4MzA5Mjh9.TI7_z2KnjmXQKEIb23jo3Mwu6ABSzs0FFFIwWWTI0_c';
+        const config: {headers: {Authorization: string}} = {
             headers: { Authorization: `Bearer ${token}` }
         };
 
-        const port = orderType === 'pickup' ? 4007 : 4001;
-        const url = `http://localhost:${port}/api/${orderType}/create`;
-        const res = await axios.post(
+        const port: number = orderType === 'pickup' ? 4007 : 4001;
+        const url: string = `http://localhost:${port}/api/${orderType}/create`;
+        const res: AxiosResponse = await axios.post(
             url,
             {
                 time: '',
@@ -91,13 +91,13 @@ export default function cart() {
     }
   }
 
-  const CartItem = (props: any) => {
-    const handleRemoveClick = async() => {
+  const CartItem = (props: {item: CartItem}): ReactElement => {
+    const handleRemoveClick = async(): Promise<void> => {
         if (cart != null) {
-            const cartId = cart._id;
-            const foodId = props.item.foodId;
-            const url = `http://localhost:4003/api/cart/remove/${cartId}/${foodId}`;
-            const res = await axios.put(
+            const cartId: string = cart._id;
+            const foodId: string = props.item.foodId;
+            const url: string = `http://localhost:4003/api/cart/remove/${cartId}/${foodId}`;
+            const res: AxiosResponse = await axios.put(
               url
             );
             // console.log(res.data);
@@ -106,20 +106,20 @@ export default function cart() {
         }
     }
   
-    const handleSaveQuantityClick = async() => {
+    const handleSaveQuantityClick: () => Promise<void> = async() => {
         console.log(quantities[props.item.name])
         if (cart != null) {
-            const cartId = cart._id;
-            const itemId = props.item._id;
-            const url = `http://localhost:4003/api/cart/edit/quantity/${cartId}/${itemId}`;
-            const res = await axios.put(
+            const cartId: string = cart._id;
+            const itemId: string = props.item._id;
+            const url: string = `http://localhost:4003/api/cart/edit/quantity/${cartId}/${itemId}`;
+            const res: AxiosResponse = await axios.put(
               url,
               {quantity: quantities[props.item.name]}
             );
             setCart(res.data);
-            let newPrice = 0;
+            let newPrice: number = 0;
             console.log();
-            res.data.items.forEach((item: any) => {
+            res.data.items.forEach((item: CartItem) => {
                 newPrice += (item.price * item.quantity);
             })
             console.info('newPrice', newPrice);
@@ -129,7 +129,7 @@ export default function cart() {
         }
     }
 
-    const onChangeQuantity = (e: any) => {
+    const onChangeQuantity: (e: any) => void = (e: any) => {
         const itemName: string = props.item.name;
         setQuantities({...quantities, [itemName]: e.target.value})
         console.log(quantities[props.item.name])
@@ -152,9 +152,9 @@ export default function cart() {
     )
   }
 
-  const CartList = (props: any) => {
+  const CartList = (props: {data: CartItem[]}) => {
     // console.log(props.data);
-    return props.data.map((item: any) => {
+    return props.data.map((item: CartItem) => {
         return CartItem({item: item});
     })
   }
