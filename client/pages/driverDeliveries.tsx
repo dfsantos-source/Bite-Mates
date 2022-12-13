@@ -17,8 +17,19 @@ const driverDeliveries = () => {
   const [showDelivered, setShowDelivered] = useState(false);
 
   async function fetchDriverDeliveries() {
-    const deliveries = await axios.get('http://localhost:4001/api/delivery/get/all/driver');
+    const config = {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+    };
+    const deliveries = await axios.get('http://localhost:4001/api/delivery/get/all/driver', config);
     setDriverDeliveries(deliveries.data.deliveries);
+  }
+
+  async function completeDelivery(deliveryId){
+    const data = {
+        _id : deliveryId
+    }
+    await axios.put('http://localhost:4001/api/delivery/complete', data);
+    fetchDriverDeliveries()
   }
 
   useEffect(() => {
@@ -45,6 +56,23 @@ const driverDeliveries = () => {
             <p>
               <strong>Recipient:</strong> {delivery.userId}
             </p>
+            <p>
+              <strong>Status:</strong> {delivery.status}
+            </p>
+            <p>
+              <strong>Total Price:</strong> {delivery.totalPrice}
+            </p>
+            {delivery.status === "in transit"? 
+                    <button
+                    onClick={() => {
+                        completeDelivery(delivery._id);
+                    }}
+                    >
+                    Complete Delivery
+                </button>
+                :
+                null
+            }
           </li>
         ))}
       </ul>
