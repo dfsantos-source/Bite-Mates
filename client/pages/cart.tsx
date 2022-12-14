@@ -2,6 +2,8 @@ import React, { useState, useEffect, ReactElement } from 'react'
 import axios, { AxiosResponse } from 'axios';
 import { config } from 'process';
 
+// AUTHOR: Dane Santos
+// Github Id: dfsantos-source
 export interface Cart {
     _id: string,
     userId: string,
@@ -17,9 +19,11 @@ export interface CartItem {
     quantity: number
 }
 
+type Quantities = {[key: string] : number};
+
 export default function cart(): ReactElement {
   const [cart, setCart] = useState <Cart | null>(null);
-  const [quantities, setQuantities] = useState <any>({});
+  const [quantities, setQuantities] = useState <Quantities>({});
   const [totalPrice, setTotalPrice] = useState <number>(0);
   const [orderType, setOrderType] = useState <string>('delivery');
 
@@ -39,7 +43,7 @@ export default function cart(): ReactElement {
             setCart(data);
 
             let totalPrice: number = 0;
-            const newQuantities: {[key: string]: number } = {};
+            const newQuantities: Quantities = {};
             data.items.forEach((item: CartItem) => {
                 newQuantities[item.name] = item.quantity;
                 totalPrice += (item.price * item.quantity);
@@ -57,11 +61,6 @@ export default function cart(): ReactElement {
   const handlePlaceOrderClick: () => Promise<void> = async() => {
     if (cart != null) {
 
-        let totalPrice: number = 0;
-        cart.items.forEach((item: CartItem) => {
-            totalPrice += item.price;
-        })
-
         const config: {headers: {Authorization: string}} = {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         };
@@ -73,7 +72,7 @@ export default function cart(): ReactElement {
             {
                 time: '',
                 foods: cart.items,
-                totalPrice: totalPrice
+                totalPrice
             },
             config
         );
@@ -130,9 +129,10 @@ export default function cart(): ReactElement {
         }
     }
 
-    const onChangeQuantity: (e: any) => void = (e: any) => {
+    const onChangeQuantity: (e: React.ChangeEvent<HTMLInputElement>) => void = (e: React.ChangeEvent<HTMLInputElement>) => {
         const itemName: string = props.item.name;
-        setQuantities({...quantities, [itemName]: e.target.value})
+        const quantity: number = e.target.value === '' ? -1 : parseInt(e.target.value);
+        setQuantities({...quantities, [itemName]: quantity})
         console.log(quantities[props.item.name])
     }
 
@@ -146,7 +146,7 @@ export default function cart(): ReactElement {
             
             <div>
                 <p className='mt-3'>Edit Quantity:</p>
-                <input style={{marginRight: '2rem'}} onChange={onChangeQuantity} value={quantities[props.item.name]} className='mb-2 w-25' type="text" name="" id="" placeholder='quantity'/>
+                <input style={{marginRight: '2rem'}} onChange={onChangeQuantity} value={quantities[props.item.name] === -1 ? '': (quantities[props.item.name]).toString() } className='mb-2 w-25' type="text" name="" id="" placeholder='quantity'/>
                 <button type="button" onClick={handleSaveQuantityClick} className="w-25 btn btn-primary">Save</button>
             </div>
         </div>

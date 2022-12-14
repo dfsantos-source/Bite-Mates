@@ -2,6 +2,8 @@ import React, { ReactElement, useState } from 'react'
 import axios, { AxiosResponse } from 'axios';
 import Image from 'next/image';
 
+// AUTHOR: Dane Santos
+// Github Id: dfsantos-source
 export interface LoginFormProps {
   type: string
 }
@@ -30,7 +32,7 @@ export default function login() {
     );
   }
 
-  const handleLoginClick = async(e: any) => {
+  const handleLoginClick = async() => {
     if (!email || !password) {
       alert('Error logging in please provide fields.');
     }
