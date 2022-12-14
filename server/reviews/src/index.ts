@@ -8,9 +8,10 @@ import logger from "morgan";
 import axios from 'axios';
 
 const app = express();
-app.use(express.json());
 app.use(cors());
 app.use(logger('dev'));
+
+app.use(express.json());
 
 const port = 4010;
 
@@ -201,9 +202,11 @@ async function start() {
     }
   });
 
+  ///https://localhost:4010/api/reviews/restaurant/create
+
   //CREATING NEW REVIEW FOR RESTAURANTID
   app.post('/api/reviews/restaurant/create', verifyToken, async (req: Request, res: Response) => {
-    const { userId, restaurantId, content, rating} : {userId: ObjectId, restaurantId: ObjectId, content: string, rating: number} = req.body;
+    const { userId, restaurantId, content, rating} : {userId: ObjectId, restaurantId: string, content: string, rating: number} = req.body;
     if(userId == null || restaurantId == null || content == null || rating == null){
       res.status(400).send({message: "Body not complete"});
       return;
@@ -213,6 +216,7 @@ async function start() {
 
       //checking whether restaurant exists given restaurantId
       const restaurants_db = db.collection('restaurants');
+
       const restaurant = restaurants_db.findOne({_id: new ObjectId(restaurantId)});
       if(!restaurant){
         res.status(404).send({message: "Restaurant does not exist"});
@@ -228,6 +232,8 @@ async function start() {
         content,
         rating
       };
+
+      console.log("3")
       
       await reviews.insertOne(review);
 
@@ -236,7 +242,11 @@ async function start() {
         data: review
       }
 
+      console.log("4")
+
       await axios.post('http://eventbus:4000/events', RestaurantReviewCreated);
+
+      console.log("5")
 
       res.status(201).send({
         message: "Review successfully registered",
