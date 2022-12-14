@@ -21,7 +21,7 @@ export default function UserNavbar() {
     <div>
           <Navbar bg="dark" variant="dark">
               <Container>
-                  <Navbar.Brand href="#home">Navbar</Navbar.Brand>
+                  <Navbar.Brand href="#home">BeFake</Navbar.Brand>
                   <Nav style={{color: "white"}} className="me-auto">
                       <Link className='mx-4' href="/restaurant"> Restaurants</Link>
                       <Link className='mx-4' href="/userOrders"> My Orders</Link>

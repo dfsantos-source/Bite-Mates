@@ -17,8 +17,13 @@ const UnassignedDeliveries = () => {
   const [unassignedDeliveries, setUnassignedDeliveries] = useState([]);
 
   async function fetchUnassignedDeliveries() {
-    const deliveries = await axios.get('http://localhost:4001/api/delivery/get/all/unassigned');
-    setUnassignedDeliveries(deliveries.data.deliveries);
+    try {
+      const deliveries = await axios.get('http://localhost:4001/api/delivery/get/all/unassigned');
+      setUnassignedDeliveries(deliveries.data.deliveries);
+    } catch(err) {
+      setUnassignedDeliveries([]);
+      console.log(err);
+    }
   }
 
   useEffect(() => {
@@ -32,8 +37,13 @@ const UnassignedDeliveries = () => {
         const data = {
             _id : deliveryId,
         }
-        await axios.put('http://localhost:4001/api/delivery/driver/assign', data, config);
-        fetchUnassignedDeliveries();
+        try {
+          await axios.put('http://localhost:4001/api/delivery/driver/assign', data, config);
+          fetchUnassignedDeliveries();
+        } catch(err) {
+          setUnassignedDeliveries([]);
+          console.log(err);
+        }
     }
 
   return (

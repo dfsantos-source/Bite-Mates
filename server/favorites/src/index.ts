@@ -70,16 +70,16 @@ async function start(){
     //if a user is created, 
     if(type === "UserCreated"){
 
-      const {userId, name, address, email, doNotDisturb} = data;
-      const _id = new ObjectId();
+      const {_id, name, address, email, doNotDisturb} = data;
+      const favoriteId = new ObjectId();
       const restaurant_list: Restaurant[] = [];
       const db = mongo.db();
 
       //adding favorite to favorites collection
       const favorites = db.collection('favorites');
       const favorite: Favorites ={
-        _id,
-        userId: new ObjectId(userId),
+        _id: favoriteId,
+        userId: new ObjectId(_id),
         restaurant_list
       }
       await favorites.insertOne(favorite);
@@ -87,7 +87,7 @@ async function start(){
       //adding user to users collection
       const users = db.collection('users');
       const user: User = {
-        _id: new ObjectId(userId),
+        _id: new ObjectId(_id),
         name,
         address,
         email,
@@ -130,6 +130,8 @@ async function start(){
   app.put('/api/user/favorites/add', verifyToken, async (req: Request, res: Response) => {
     const {userId, restaurantId} : {userId: string, restaurantId: string } = req.body;
 
+    console.log(req.body);
+
     if(userId == null || restaurantId == null){
       res.status(400).send({message: "Body not complete"});
       return;
@@ -148,6 +150,8 @@ async function start(){
       const db = mongo.db();
       const reviews = db.collection('favorites');
       const user_favorite = await reviews.findOne({"userId": new ObjectId(userId)});
+
+      console.log(user_favorite);
 
       if(user_favorite === null){
         res.status(400).send({message: "Body not complete"});
