@@ -2,6 +2,8 @@ import React , {useState, useEffect} from 'react'
 import axios from "axios";
 import DeliveryCard from './DeliveryCard';
 
+//Author: Aayush Bhagat
+//Github ID: Aayush-Bhagat
 export interface Delivery{
     time: string,
     userId: string,
@@ -9,10 +11,10 @@ export interface Delivery{
     totalPrice: number,
     _id: string,
     foods: Food[]
-
+    driverId: null | string
 }
 
-interface Food{
+export interface Food{
     _id: string,
     name: string,
     price: number,
