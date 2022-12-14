@@ -6,6 +6,15 @@ import { useRouter } from 'next/router';
 
 // AUTHOR: Dane Santos
 // Github Id: dfsantos-source
+
+// Description: 
+// This Login component represents the login page where users or drivers can log in. 
+// They are prompted with a question "Are you a User or Driver?" so they can be routed
+// to the correct page. 
+// This Login component consists of smaller components. Those smaller components are:
+// 1. LoginForm Component
+// 2. LoginPrompt Component
+
 export interface LoginFormProps {
   type: string
 }
@@ -80,26 +89,30 @@ export default function Login() {
     return LoginForm({type: loginType});
   }
 
-  const form: LoginForm = getForm();
+  const Form: LoginForm = getForm();
+
+  const LoginPrompt = () => {
+    return (<div>
+      <Image style={{position: 'relative', marginLeft: 'auto', marginRight: 'auto'}}className="ml-auto mr-auto" width={200} height={200} alt= "" src={'/delivery.svg'}/>
+      <h1 style={{color: `rgb(36, 105, 154)`}} className='card-title pt-1 pb-1' >BeFake</h1>
+      <hr></hr>
+      <h3 className=''>Login Page</h3>
+      <h4 className='mt-1'>Are you a User or Driver?</h4>
+      <div className="d-flex flex-column w-50 mx-auto mt-4">
+        <button type="button" className="btn btn-primary mb-4" onClick={handleUserClick}>User</button>
+        <button type="button" className="btn btn-primary" onClick={handleDriverClick}>Driver</button>
+      </div>
+    </div>);
+  }
 
   return (
     <div style={{  }} className='w-100 h-100 d-flex'>
         <Image style={{position: 'absolute', zIndex:-5}}className="object-cover" width={1920} height={1080} alt= "" src={'/loginGif.gif'}/>
         <div style={{ justifyContent: 'center', marginTop: '8%', marginBottom:"0%", flexDirection: 'column', marginLeft: 'auto', marginRight: 'auto'}}>
           <div className='card d-flex mx-auto' style={{paddingLeft: '120px', paddingRight: '120px', paddingTop:'50px', paddingBottom:'50px'}}>
-          <Image style={{position: 'relative', marginLeft: 'auto', marginRight: 'auto'}}className="ml-auto mr-auto" width={200} height={200} alt= "" src={'/delivery.svg'}/>
-            <h1 style={{color: `rgb(36, 105, 154)`}} className='card-title pt-1 pb-1' >BeFake</h1>
-            <hr></hr>
-            <h3 className=''>Login Page</h3>
-            <h4 className='mt-1'>Are you a User or Driver?</h4>
-            <div className="d-flex flex-column w-50 mx-auto mt-4">
-              <button type="button" className="btn btn-primary mb-4" onClick={handleUserClick}>User</button>
-              <button type="button" className="btn btn-primary" onClick={handleDriverClick}>Driver</button>
-            </div>
-            {form}
+            <LoginPrompt/>
+            {Form}
             <Link href="/register">Sign up</Link>
-          </div>
-          <div>
           </div>
         </div>
     </div>
