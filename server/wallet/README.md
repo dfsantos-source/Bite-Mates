@@ -27,4 +27,4 @@ This service also deals with 4 different events:
 
 ## Tutorial 
 
-To run this service, it must be run in conjuction with the User and Delivery/Pickup services as it requires communication between these services to fully run the endpoints and events fully. Additionally, it can be run amongst services such as notifications to create the notifications, however it is not necessary to run the Wallet service itself. 
+To run this service, it must be run in conjuction with the User and Delivery/Pickup services as it requires communication between these services to fully run the endpoints and events fully. Additionally, it can be run amongst services such as notifications to create the notifications, however it is not necessary to run the Wallet service itself. There are also certain packages that need to be installed prior to running the service such as axios, cors, morgan, jsonwebtoken, express, and mongodb. Service needs to be run on port 4012, as the other services use other ports.
