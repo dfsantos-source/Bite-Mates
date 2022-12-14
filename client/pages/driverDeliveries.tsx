@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import DriverNavbar from '../components/DriverNavbar';
 
 interface Delivery {
   _id: string;
@@ -12,7 +13,7 @@ interface Delivery {
   type: string;
 }
 
-const driverDeliveries = () => {
+const DriverDeliveries = () => {
   const [driverDeliveries, setDriverDeliveries] = useState([]);
   const [showDelivered, setShowDelivered] = useState(false);
 
@@ -20,8 +21,12 @@ const driverDeliveries = () => {
     const config = {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
     };
-    const deliveries = await axios.get('http://localhost:4001/api/delivery/get/all/driver', config);
-    setDriverDeliveries(deliveries.data.deliveries);
+    try {
+      const deliveries = await axios.get('http://localhost:4001/api/delivery/get/all/driver', config);
+      setDriverDeliveries(deliveries.data.deliveries);
+    } catch (error) {
+      console.log("no deliveries")
+    }
   }
 
   async function completeDelivery(deliveryId){
@@ -38,6 +43,7 @@ const driverDeliveries = () => {
 
   return (
     <div>
+      <DriverNavbar />
       <h1 style={{ fontSize: '2em', marginBottom: '20px' }}>Driver Deliveries</h1>
       <button onClick={() => setShowDelivered(!showDelivered)}>
         {showDelivered ? 'Hide Delivered' : 'Show Delivered'}
@@ -80,4 +86,4 @@ const driverDeliveries = () => {
   );
 };
 
-export default driverDeliveries;
+export default DriverDeliveries;

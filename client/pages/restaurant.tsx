@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import Single_Restaurant from "../components/Single_Restaurant";
-import { stringify } from 'querystring';
+import UserNavbar from '../components/UserNavbar';
 
 interface Restaurant{
     _id: string,
@@ -53,7 +53,7 @@ export default function Restaurant() {
                     restaurants.map((r: Restaurant) => {
                         const foods: Food[] = r.foods
                         return (
-                            <div style={cardStyles} className='card border-rounded'>
+                            <div key={r._id} style={cardStyles} className='card border-rounded'>
                                 <div onClick = {()=>{set_curr_restauraunt(r._id)}}>
                                     <h5>Name:</h5>
                                     <div>{r.name}</div>
@@ -75,6 +75,7 @@ export default function Restaurant() {
 
     return (
         <div> 
+            <UserNavbar />
             <RenderRestaurants restaurants={restaurants}/>
         </div>
     );

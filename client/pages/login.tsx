@@ -1,6 +1,8 @@
 import React, { ReactElement, useState } from 'react'
 import axios, { AxiosResponse } from 'axios';
 import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 // AUTHOR: Dane Santos
 // Github Id: dfsantos-source
@@ -10,11 +12,13 @@ export interface LoginFormProps {
 
 type LoginForm = "" | React.ReactElement<any, any> | null;
 
-export default function login() {
+export default function Login() {
 
   const [loginType, setLoginType] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+
+  const router = useRouter();
 
   const LoginForm: React.FunctionComponent<LoginFormProps> = (props: LoginFormProps) => {
     const type: string = props.type;
@@ -51,6 +55,11 @@ export default function login() {
       );
       alert('Login sucessful');
       console.log(res.data)
+      localStorage.setItem("token", res.data.token)
+      loginType === "user" ? localStorage.setItem("userType", "user") : localStorage.setItem("userType", "driver");
+
+      loginType === "user"? router.push("/restaurant") : router.push("/unassignedDeliveries")
+
     } catch (err) {
       alert('Incorrect email or password');
     }
@@ -88,6 +97,9 @@ export default function login() {
               <button type="button" className="btn btn-primary" onClick={handleDriverClick}>Driver</button>
             </div>
             {form}
+            <Link href="/register">Sign up</Link>
+          </div>
+          <div>
           </div>
         </div>
     </div>

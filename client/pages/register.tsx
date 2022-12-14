@@ -1,6 +1,7 @@
 import React, {useState} from 'react'
 import { useRouter } from 'next/router';
 import axios from 'axios'
+import Link from 'next/link';
 
 // AUTHOR: Aayush Bhagat
 // Github Id: Aayush-Bhagat
@@ -24,7 +25,7 @@ export default function Register() {
         setUserData({...userData, [event.target.name]: event.target.value})
   }
 
-  const registerUser = async(event: React.FormEvent<HTMLInputElement>)=>{
+    const registerUser = async (event: React.MouseEvent<HTMLButtonElement, MouseEvent>)=>{
     event.preventDefault()
     if(userType == "user"){
         const body = {
@@ -37,7 +38,8 @@ export default function Register() {
         let data = res.data;
         if (data.token) {
             localStorage.setItem("token", data.token);
-            router.push("/")
+            localStorage.setItem("userType", "user");
+            router.push("/restaurant")
         }
     }
     else if (userType === "driver"){
@@ -50,7 +52,8 @@ export default function Register() {
         let data = res.data;
         if(data.token){
             localStorage.setItem("token", data.token);
-            router.push("/")
+            localStorage.setItem("userType", "driver");
+            router.push("/unassignedDeliveries")
         }
     }
   }
@@ -72,6 +75,7 @@ export default function Register() {
 
             <button onClick={registerUser} className='btn btn-primary'>Register</button>
         </form>
+          <Link href="/login">Login</Link>
     </div>
   )
 }

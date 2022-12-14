@@ -1,6 +1,6 @@
 import React from 'react'
 import UserDeliveries from '../components/UserDeliveries'
-import UserNavbar from '../components/userNavbar'
+import UserNavbar from '../components/UserNavbar'
 import UserPickups from '../components/UserPickups'
 
 

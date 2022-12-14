@@ -1,6 +1,6 @@
 import React, { useState, useEffect, ReactElement } from 'react'
 import axios, { AxiosResponse } from 'axios';
-import { config } from 'process';
+import UserNavbar from '../components/UserNavbar';
 
 // AUTHOR: Dane Santos
 // Github Id: dfsantos-source
@@ -162,6 +162,7 @@ export default function cart(): ReactElement {
 
   return (
     <div>
+        <UserNavbar />
         <div style={{display: 'flex', justifyContent: 'center', marginTop: '10%', flexDirection: 'column'}}>
           <div className='card p-4 w-50'  style={{marginLeft: 'auto', marginRight: 'auto'}}>
             <h1 className='card-title'>Cart</h1>

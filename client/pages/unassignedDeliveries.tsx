@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import DriverNavbar from '../components/DriverNavbar';
 
 interface Delivery {
   _id: string;
@@ -24,7 +25,7 @@ const UnassignedDeliveries = () => {
     fetchUnassignedDeliveries();
   }, []);
 
-    async function assignDriver(deliveryId){
+    async function assignDriver(deliveryId: string){
         const config = {
             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         };
@@ -37,6 +38,7 @@ const UnassignedDeliveries = () => {
 
   return (
     <div>
+      <DriverNavbar />
       <h1 style={{ fontSize: '2em', marginBottom: '20px' }}>Unassigned Deliveries</h1>
       <ul style={{ listStyle: 'none', padding: 0 }}>
         {unassignedDeliveries.map((delivery: Delivery) => (
