@@ -26,7 +26,12 @@ export default function Single_Restaurant(props: any){
 
     const add_favorite = async (restaurantId: string) => {
         const config = {headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }};
-        await axios.put('http://localhost:4004/api/user/favorites/add', {restaurantId}, config);
+        try {
+            await axios.put('http://localhost:4004/api/user/favorites/add', {restaurantId}, config);
+            alert('Restaurant added to favorites!')
+        } catch(err) {
+            console.log(err);
+        }
     }
 
     console.log("RESTAURANT: " + restaurant.name)
@@ -34,6 +39,7 @@ export default function Single_Restaurant(props: any){
     const add_to_cart = async (food_data: Food) => {
         const config = {headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }};
         await axios.put('http://localhost:4003/api/cart/add', {food: food_data}, config)
+        alert('Item added to cart!')
     }
 
     const Render_Foods = ({restaurant}: {restaurant: Restaurant}) =>{

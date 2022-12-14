@@ -13,106 +13,239 @@ services:
     ports:
       - "4001:4001"
     depends_on:
+      - mongodb_deliveries
       - eventbus
     environment:
-      DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.g1dgnsz.mongodb.net/?retryWrites=true&w=majority
+      DATABASE_URL: mongodb://root:rootpassword@mongodb_deliveries:27017/mydb?directConnection=true&authSource=admin
       ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
+
+  mongodb_deliveries:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongodb_delivery_container:/data/db
+
   drivers:
     build: server/drivers
     ports:
       - "4002:4002"
     depends_on:
+      - mongodb_drivers
       - eventbus
     environment:
-      DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.6ym7hpw.mongodb.net/?retryWrites=true&w=majority
+      DATABASE_URL: mongodb://root:rootpassword@mongodb_drivers:27017/mydb?directConnection=true&authSource=admin
       ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
+
+  mongodb_drivers:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongodb_driver_container:/data/db
+
   cart:
     build: server/cart
     ports:
       - "4003:4003"
     depends_on:
+      - mongodb_cart
       - eventbus
     environment:
-      DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.gmkapfj.mongodb.net/?retryWrites=true&w=majority
+      DATABASE_URL: mongodb://root:rootpassword@mongodb_cart:27017/mydb?directConnection=true&authSource=admin
       ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
+
+  mongodb_cart:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongodb_cart_container:/data/db
+
   favorites:
     build: server/favorites
     ports:
       - "4004:4004"
     depends_on:
+      - mongodb_favorites
       - eventbus
     environment:
-      DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.g9utvud.mongodb.net/?retryWrites=true&w=majority
+      DATABASE_URL: mongodb://root:rootpassword@mongodb_favorites:27017/mydb?directConnection=true&authSource=admin
       ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
+
+  mongodb_favorites:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongodb_favorites_container:/data/db
+
   metrics:
     build: server/metrics
     ports:
       - "4005:4005"
     depends_on:
+      - mongodb_metrics
       - eventbus
     environment:
-      DATABASE_URL: mongodb+srv://Befake:VTcs9nXYICf08QlU@cluster0.alqzhxc.mongodb.net/?retryWrites=true&w=majority
+      DATABASE_URL: mongodb://root:rootpassword@mongodb_metrics:27017/mydb?directConnection=true&authSource=admin
       ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
+
+  mongodb_metrics:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongodb_metrics_container:/data/db
+
   notifications:
     build: server/notifications
     ports:
       - "4006:4006"
     depends_on:
+      - mongodb_notifications
       - eventbus
     environment:
-      DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.4zeow8w.mongodb.net/?retryWrites=true&w=majority
+      DATABASE_URL: mongodb://root:rootpassword@mongodb_notifications:27017/mydb?directConnection=true&authSource=admin
       ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
+
+  mongodb_notifications:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongodb_notifications_container:/data/db
+
   pickups:
     build: server/pickups
     ports:
       - "4007:4007"
     depends_on:
+      - mongodb_pickups
       - eventbus
     environment:
-      DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.yuqg0pj.mongodb.net/?retryWrites=true&w=majority
+      DATABASE_URL: mongodb://root:rootpassword@mongodb_pickups:27017/mydb?directConnection=true&authSource=admin
       ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
+
+  mongodb_pickups:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongodb_pickups_container:/data/db
+
   restaurants:
     build: server/restaurants
     ports:
       - "4008:4008"
     depends_on:
+      - mongodb_restaurants
       - eventbus
     environment:
-      DATABASE_URL: mongodb+srv://Befake:woJ3lbTZLYnlYgay@cluster0.pmskj9f.mongodb.net/?retryWrites=true&w=majority
+      DATABASE_URL: mongodb://root:rootpassword@mongodb_restaurants:27017/mydb?directConnection=true&authSource=admin
       ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
+
+  mongodb_restaurants:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongodb_restaurants_container:/data/db
+
   review-comments:
     build: server/review-comments
     ports:
       - "4009:4009"
     depends_on:
+      - mongodb_review_comments
       - eventbus
     environment:
-      DATABASE_URL: mongodb+srv://Befake:PP6xbGLLXdabHFI1@cluster0.milf9lq.mongodb.net/?retryWrites=true&w=majority
+      DATABASE_URL: mongodb://root:rootpassword@mongodb_review_comments:27017/mydb?directConnection=true&authSource=admin
       ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
+
+  mongodb_review_comments:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongodb_review_comments_container:/data/db
+
   reviews:
     build: server/reviews
     ports:
       - "4010:4010"
     depends_on:
+      - mongodb_reviews
       - eventbus
     environment:
-      DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.jervohw.mongodb.net/?retryWrites=true&w=majority
+      DATABASE_URL: mongodb://root:rootpassword@mongodb_reviews:27017/mydb?directConnection=true&authSource=admin
       ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
+
+  mongodb_reviews:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongodb_reviews_container:/data/db
+
   users:
     build: server/users
     ports:
       - "4011:4011"
     depends_on:
+      - mongodb_users
       - eventbus
     environment:
-      DATABASE_URL: mongodb+srv://Befake:6a4rWhYjq4bReM94@cluster0.kf7533j.mongodb.net/?retryWrites=true&w=majority
+      DATABASE_URL: mongodb://root:rootpassword@mongodb_users:27017/mydb?directConnection=true&authSource=admin
       ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
+
+  mongodb_users:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongodb_users_container:/data/db
+
   wallet:
     build: server/wallet
     ports:
       - "4012:4012"
     depends_on:
+      - mongodb_wallet
       - eventbus
     environment:
-      DATABASE_URL: mongodb+srv://root:rootpassword@cluster0.4uevgsr.mongodb.net/?retryWrites=true&w=majority
+      DATABASE_URL: mongodb://root:rootpassword@mongodb_wallet:27017/mydb?directConnection=true&authSource=admin
       ACCESS_TOKEN: 65e7f378a0252ffe3b0696a336e02b30497035f7a340621b34517bb50c11d79fa03243130cadd8e0b033b70f28457fae929d9647e1a76ffc7beb8e600e0c8ceb1cf40f8d36115e3bfe4bdf0637073762
+
+  mongodb_wallet:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongodb_wallet_container:/data/db
+
+volumes:
+  mongodb_cart_container:
+  mongodb_delivery_container:
+  mongodb_driver_container:
+  mongodb_favorites_container:
+  mongodb_metrics_container:
+  mongodb_notifications_container:
+  mongodb_pickups_container:
+  mongodb_restaurants_container:
+  mongodb_review_comments_container:
+  mongodb_reviews_container:
+  mongodb_users_container:
+  mongodb_wallet_container:
