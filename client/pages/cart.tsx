@@ -25,9 +25,8 @@ export default function cart(): ReactElement {
 
   useEffect((): void => {
     const getData: () => Promise<void> = async() => {
-        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2Mzk2ZGI1MDk2YmRiNzhjZjlmNjRmYjUiLCJpYXQiOjE2NzA4MzA5Mjh9.TI7_z2KnjmXQKEIb23jo3Mwu6ABSzs0FFFIwWWTI0_c';
         const config = {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         };
         try {
             const res: AxiosResponse = await axios.get( 
@@ -63,10 +62,8 @@ export default function cart(): ReactElement {
             totalPrice += item.price;
         })
 
-
-        const token: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2Mzk2ZGI1MDk2YmRiNzhjZjlmNjRmYjUiLCJpYXQiOjE2NzA4MzA5Mjh9.TI7_z2KnjmXQKEIb23jo3Mwu6ABSzs0FFFIwWWTI0_c';
         const config: {headers: {Authorization: string}} = {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         };
 
         const port: number = orderType === 'pickup' ? 4007 : 4001;
@@ -76,8 +73,7 @@ export default function cart(): ReactElement {
             {
                 time: '',
                 foods: cart.items,
-                totalPrice: 0
-                // totalPrice: totalPrice
+                totalPrice: totalPrice
             },
             config
         );
@@ -87,6 +83,9 @@ export default function cart(): ReactElement {
         if (res.status === 201) {
             setCart({...cart, ['items']: [] })
             setTotalPrice(0);
+            alert(`Order sucessfully placed!`);
+        } else {
+            alert(`Error placing your order`);
         }
     }
   }
@@ -103,6 +102,8 @@ export default function cart(): ReactElement {
             // console.log(res.data);
             setCart(res.data);
             setTotalPrice(totalPrice-(props.item.price * props.item.quantity))
+
+            alert('Successfully removed item from cart');
         }
     }
   
@@ -164,16 +165,25 @@ export default function cart(): ReactElement {
         <div style={{display: 'flex', justifyContent: 'center', marginTop: '10%', flexDirection: 'column'}}>
           <div className='card p-4 w-50'  style={{marginLeft: 'auto', marginRight: 'auto'}}>
             <h1 className='card-title'>Cart</h1>
-            <div className="d-flex flex-column w-50 mx-auto mt-4">
-              {cart == null ? 'Loading' : CartList({data: cart.items})}
-              <h4 className='mt-3 d-flex justify-content-center'>Total Price: ${totalPrice}</h4>
-              <label className='h5 mt-4'>Choose an order type:</label>
-                <select className='w-25 mt-2 mb-3' onChange={e => {setOrderType(e.target.value); }} value={orderType} id="orderType" name="orderType">
-                <option id="delivery" value="delivery">Delivery</option>
-                <option id="pickup" value="pickup">Pickup</option>
-              </select>
-              <button type="button" onClick={handlePlaceOrderClick} className="w-50 mt-2 h-25 m-auto btn btn-primary">Place Order</button>
-            </div>
+
+            {
+                cart?.items && cart.items.length > 0 
+                ?
+                <div className="d-flex flex-column w-50 mx-auto mt-4">
+                    {cart == null ? 'Loading' : CartList({data: cart.items})}
+                    <h4 className='mt-3 d-flex justify-content-center'>Total Price: ${totalPrice}</h4>
+                    <label className='h5 mt-4'>Choose an order type:</label>
+                    <select className='w-25 mt-2 mb-3' onChange={e => {setOrderType(e.target.value); }} value={orderType} id="orderType" name="orderType">
+                        <option id="delivery" value="delivery">Delivery</option>
+                        <option id="pickup" value="pickup">Pickup</option>
+                    </select>
+                    <button type="button" onClick={handlePlaceOrderClick} className="w-50 mt-2 h-25 m-auto btn btn-primary">Place Order</button>
+                </div>
+                :
+                <div>
+                    <h3 className='mt-3'>Your cart is empty</h3>
+                </div>
+            }
           </div>
         </div>
     </div>
