@@ -34,7 +34,7 @@ Create a cart for a user.
 
 Request Data Constraints:
 
-```json
+```
 { "userId" : string }
 ```
 
@@ -50,7 +50,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   { 
     "_id": string,
     "userId": string,
@@ -85,7 +85,7 @@ Adds a food to a user's cart. A valid user auth token must b provided
 
 Request Data Constraints:
 
-```json
+```
 { 
   "userId": string,
   "food": {
@@ -117,7 +117,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   { 
     "_id": string,
     "userId": string,
@@ -170,7 +170,7 @@ Removes items from a cart based on the specific food.
 
 Request Data Constraints: 
 PARAMS
-```json
+```
 {
   "cartId": string,
   "foodId": string
@@ -192,7 +192,7 @@ PARAMS
 
   Response Data Constraints:
 
-  ```json
+  ```
   { 
     "_id": string,
     "userId": string,
@@ -243,7 +243,7 @@ Gets a cart for a user. A valid user auth token must be provided.
 **BODY**:
 
 Request Data Constraints: 
-```json
+```
 {"userId": string}
 ```
 
@@ -258,7 +258,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   { 
     "_id": string,
     "userId": string,
@@ -309,7 +309,7 @@ Edits the quatity of a specific item in the cart.
 **BODY**:
 
 Request Data Constraints: 
-```json
+```
 { 
   "quantity": number
 }
@@ -328,7 +328,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   { 
     "_id": string,
     "userId": string,

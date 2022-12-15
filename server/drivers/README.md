@@ -38,7 +38,7 @@ Registers a driver
 
 Request Data Constraints:
 
-```json
+```
 { 
   "name" : string, 
   "email": string, 
@@ -62,7 +62,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   {
       "message": string,
       "_id": string,
@@ -102,7 +102,7 @@ Allows the driver to login. Provies an auth token upon successful login.
 
 Request Data Constraints:
 
-```json
+```
 { 
   "email": string, 
   "password": string 
@@ -124,7 +124,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   {
     "message": string,
     "_id": string,
@@ -164,7 +164,7 @@ Retrieves a driver, given a driverId. Auth token needed.
 **BODY**:
 
 Request Data Constraints: 
-```json
+```
 {"driverId": string}
 ```
 
@@ -179,7 +179,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   {
     "_id": string,
     "name": string,
@@ -216,7 +216,7 @@ Updates the `doNotDisturb` field for a driver, so notifications can be sent/or n
 **BODY**:
 
 Request Data Constraints: 
-```json
+```
 {"driverId": string, "doNotDisutrb": boolean}
 ```
 
@@ -231,7 +231,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   {
     "_id": string,
     "name": string,
@@ -268,7 +268,7 @@ Updates the `email` field for a driver. A valid auth token must be provided.
 **BODY**:
 
 Request Data Constraints: 
-```json
+```
 {"driverId": string, "email": string}
 ```
 
@@ -283,7 +283,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   {
     "_id": string,
     "name": string,

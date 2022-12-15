@@ -56,7 +56,7 @@ Get all notifications for the user. Auth token needed.
 **BODY**:
 
 Request Data Constraints: 
-```json
+```
 {"userId": string}
 ```
 
@@ -71,7 +71,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   { 
     [
         {
@@ -125,7 +125,7 @@ Get all notifications for the driver. Auth token needed.
 **BODY**:
 
 Request Data Constraints: 
-```json
+```
 {"driverId": string}
 ```
 
@@ -140,7 +140,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   { 
     [
         {
@@ -183,7 +183,7 @@ Create a notification for a user
 
 Request Data Constraints: 
 
-```json
+```
 {
     "userId": string,
     "notificationMessage": string
@@ -205,7 +205,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
     {
         "_id": string,
         "userId": string,
@@ -241,7 +241,7 @@ Create a notification for a driver
 
 Request Data Constraints: 
 
-```json
+```
 {
     "driverId": string,
     "notificationMessage": string
@@ -263,7 +263,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
     {
         "_id": string,
         "driverId": string,
@@ -299,15 +299,13 @@ Updates the isRead field of a notification, marking it as read
 **BODY**:
 
 Request Data Constraints: 
-PARAMS
-```json
+```
 {
     "isRead": boolean
 }
 ```
 
 Request Data Example:
-PARAMS
 ```json
 {
     "isRead": true
@@ -320,7 +318,7 @@ PARAMS
 
   Response Data Constraints:
 
-  ```json
+  ```
   {
       "_id": string,
       "userId": string,
@@ -357,15 +355,13 @@ Updates the isRead field of a notification, marking it as read
 **BODY**:
 
 Request Data Constraints: 
-PARAMS
-```json
+```
 {
     "isRead": boolean
 }
 ```
 
 Request Data Example:
-PARAMS
 ```json
 {
     "isRead": true
@@ -378,7 +374,7 @@ PARAMS
 
   Response Data Constraints:
 
-  ```json
+  ```
     {
         "_id": "639992ccccf41e2dd8307fa9",
         "userId": "6399926af6c7ec8902a76572",
