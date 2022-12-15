@@ -75,7 +75,7 @@ Request Data Example:
 ---
 ### Add to cart
 ---
-Adds a food to a user's cart. A valid user auth token must b provided
+Adds a food to a user's cart. A valid user auth token must be provided
 
 **URL**: `/api/cart/add`
 
@@ -368,4 +368,8 @@ Request Data Example:
 - `500 INTERNAL SERVER ERROR`: If there is an exception or other error condition that is rare or shouldn't occur
 
 ## How to run
+<<<<<<< HEAD
 In order for this service to run you must run the `docker compose` command. The docker compose command will build all the docker containers for each service including the event bus and the frontend. This will also install all dependencies needed for each service and provision an independent MongoDB database respective to each service. Additionally, the docker compose has an environment variable `ACCESS_TOKEN` which the service uses for parsing JWT tokens. The 4003 port is the port that this service is running on and it gets mapped to the docker container and stores a volume for the `mongodb_cart_container`. This service depends on the User Service, Restaurant Service, and the Wallet Service so they must be running in order for this service to work. Additionally, the event bus must be running, and should have succesfully subscribed to all of the events it needs prior to any API endpoints being called.
+=======
+In order for this service to run you must run the `docker compose` command. The docker compose command will build all the docker containers for each service including the event bus and the frontend. This will also install all dependencies needed for each service and provision an independent MongoDB database respective to each service. The 4003 port is the port that this service is running on and it gets mapped to the docker container and stores a volume for the `mongodb_cart_container`. This service depends on the User Service, Restaurant Service, and the Wallet Service so they must be running in order for this service to work. Additionally, the event bus must be running, and should have succesfully subscribed to all of the events it needs prior to any API endpoints being called.
+>>>>>>> b4f822b045cc7e6720ce90c9084a1a2906c3b018

@@ -299,7 +299,11 @@ Updates the isRead field of a notification, marking it as read
 **BODY**:
 
 Request Data Constraints: 
+<<<<<<< HEAD
 ```
+=======
+```json
+>>>>>>> b4f822b045cc7e6720ce90c9084a1a2906c3b018
 {
     "isRead": boolean
 }
@@ -355,7 +359,11 @@ Updates the isRead field of a notification, marking it as read
 **BODY**:
 
 Request Data Constraints: 
+<<<<<<< HEAD
 ```
+=======
+```json
+>>>>>>> b4f822b045cc7e6720ce90c9084a1a2906c3b018
 {
     "isRead": boolean
 }
@@ -402,4 +410,8 @@ Request Data Example:
 
 
 ## How to run
+<<<<<<< HEAD
 In order for this service to run you must run the `docker compose` command. The docker compose command will build all the docker containers for each service including the event bus and the frontend. This will also install all dependencies needed for each service and provision an independent MongoDB database respective to each service. Additionally, the docker compose has an environment variable `ACCESS_TOKEN` which the service uses for parsing JWT tokens.  The 4006 port is the port that this service is running on and it gets mapped to the docker container and stores a volume for the `mongodb_notifications_container`. This service depends on the Driver Service, User Service, Delivery Service, Pickup Service, Wallet Service, Restaurant Service so they must be running in order for this service to work. Additionally, the event bus must be running, and should have succesfully subscribed to all of the events it needs prior to any API endpoints being called.
+=======
+In order for this service to run you must run the `docker compose` command. The docker compose command will build all the docker containers for each service including the event bus and the frontend. This will also install all dependencies needed for each service and provision an independent MongoDB database respective to each service. The 4006 port is the port that this service is running on and it gets mapped to the docker container and stores a volume for the `mongodb_notifications_container`. This service depends on the Driver Service, User Service, Delivery Service, Pickup Service, Wallet Service, Restaurant Service so they must be running in order for this service to work. Additionally, the event bus must be running, and should have succesfully subscribed to all of the events it needs prior to any API endpoints being called.
+>>>>>>> b4f822b045cc7e6720ce90c9084a1a2906c3b018

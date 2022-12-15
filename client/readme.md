@@ -16,7 +16,7 @@ Github: LaRochelleNolan
 
 
 ## Description
-This service is responsible for serving as the client side, frontend so users can interact with our application. This service is built using Next.js (approved by Professor) and React. 
+This service is responsible for serving as the client side, frontend so users can interact with our application. This service is built using Next.js (approved by Professor) and React. All of the components for the front end are in the pages directory and components directory
 
 ## Interaction with other services
 This frontend service interacts with all of the backend services except for the Notifications and Metrics Service. The frontend interacts with the backend services by making HTTP Axios asynchronous requests to the backend server, which is then relayed back to the frontend service in the form of a HTTP response. The interaction of the frontend service extends to incorporate the use of JWT auth tokens so the requests to the backend are more secure and robust.

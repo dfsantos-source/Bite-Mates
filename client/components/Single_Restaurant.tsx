@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import Link from 'next/link'
 import axios from 'axios'
 import Post_Reviews from './post_reviews'
 import Add_Review from './add_review'

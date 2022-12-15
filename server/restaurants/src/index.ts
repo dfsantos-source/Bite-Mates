@@ -150,6 +150,12 @@ async function start() {
       const db = mongo.db();
       const restaurants_doc = db.collection('restaurants');
       const restaurant = await restaurants_doc.findOne({"_id" : new ObjectId(restaurantId)}) as Restaurant;
+
+      if (!restaurant) {
+        res.status(404).send({message: "Restaurant not found"});
+        return;
+      }
+      
       const _id = new ObjectId();
       const food: Food = {
         _id,
@@ -188,7 +194,7 @@ async function start() {
         return;
       }
 
-      res.status(201).send({restaurants});
+      res.status(200).send({restaurants});
       return;
     }
     catch(err:any) {
@@ -219,7 +225,7 @@ async function start() {
       }
 
       const {_id, name, address, type, foods}: {_id: ObjectId, name: string, address: string, type: string, foods: Food[]} = restaurant;
-      res.status(201).send({
+      res.status(200).send({
         _id,
         name,
         address,
@@ -240,7 +246,7 @@ async function start() {
     const {restaurantId} = req.params;
 
     if (restaurantId == null) {
-      res.status(400).send({message: "Body not complete"});
+      res.status(400).send({message: "No restaurant was gievn not complete"});
       return;
     }
     if (!ObjectId.isValid(restaurantId)) {
@@ -258,7 +264,7 @@ async function start() {
       }
 
       const {foods}: {foods: Food[]} = restaurant;
-      res.status(201).send({foods});
+      res.status(200).send({foods});
       return;
     }
     catch(err:any) {
