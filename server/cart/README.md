@@ -34,7 +34,7 @@ Create a cart for a user.
 
 Request Data Constraints:
 
-```json
+```
 { "userId" : string }
 ```
 
@@ -50,7 +50,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   { 
     "_id": string,
     "userId": string,
@@ -85,7 +85,7 @@ Adds a food to a user's cart. A valid user auth token must be provided
 
 Request Data Constraints:
 
-```json
+```
 { 
   "userId": string,
   "food": {
@@ -117,7 +117,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   { 
     "_id": string,
     "userId": string,
@@ -170,7 +170,7 @@ Removes items from a cart based on the specific food.
 
 Request Data Constraints: 
 PARAMS
-```json
+```
 {
   "cartId": string,
   "foodId": string
@@ -192,7 +192,7 @@ PARAMS
 
   Response Data Constraints:
 
-  ```json
+  ```
   { 
     "_id": string,
     "userId": string,
@@ -243,7 +243,7 @@ Gets a cart for a user. A valid user auth token must be provided.
 **BODY**:
 
 Request Data Constraints: 
-```json
+```
 {"userId": string}
 ```
 
@@ -258,7 +258,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   { 
     "_id": string,
     "userId": string,
@@ -309,7 +309,7 @@ Edits the quatity of a specific item in the cart.
 **BODY**:
 
 Request Data Constraints: 
-```json
+```
 { 
   "quantity": number
 }
@@ -328,7 +328,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   { 
     "_id": string,
     "userId": string,
@@ -368,4 +368,4 @@ Request Data Example:
 - `500 INTERNAL SERVER ERROR`: If there is an exception or other error condition that is rare or shouldn't occur
 
 ## How to run
-In order for this service to run you must run the `docker compose` command. The docker compose command will build all the docker containers for each service including the event bus and the frontend. This will also install all dependencies needed for each service and provision an independent MongoDB database respective to each service. The 4003 port is the port that this service is running on and it gets mapped to the docker container and stores a volume for the `mongodb_cart_container`. This service depends on the User Service, Restaurant Service, and the Wallet Service so they must be running in order for this service to work. Additionally, the event bus must be running, and should have succesfully subscribed to all of the events it needs prior to any API endpoints being called.
+In order for this service to run you must run the `docker compose` command. The docker compose command will build all the docker containers for each service including the event bus and the frontend. This will also install all dependencies needed for each service and provision an independent MongoDB database respective to each service. Additionally, the docker compose has an environment variable `ACCESS_TOKEN` which the service uses for parsing JWT tokens. The 4003 port is the port that this service is running on and it gets mapped to the docker container and stores a volume for the `mongodb_cart_container`. This service depends on the User Service, Restaurant Service, and the Wallet Service so they must be running in order for this service to work. Additionally, the event bus must be running, and should have succesfully subscribed to all of the events it needs prior to any API endpoints being called.

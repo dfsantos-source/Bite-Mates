@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import { ObjectId } from 'mongodb';
 import { MongoClient } from 'mongodb';
 import { Favorites, Restaurant, Food, User } from './types/dataTypes';
+import { initRestaurants } from './initData';
 import jwt, { JwtPayload } from "jsonwebtoken";
 import logger from 'morgan';
 import axios from 'axios';
@@ -48,9 +49,29 @@ function verifyToken(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+async function initDB(mongo: MongoClient) {
+  const db = mongo.db();
+
+  if (await db.listCollections({ name: 'restaurants' }).hasNext()) {
+    console.log('Collection already exists. Skipping initialization.');
+    return;
+  }
+
+  const products = db.collection('restaurants');
+  const result = await products.insertMany(initRestaurants);
+
+  console.log(`Initialized ${result.insertedCount} products`);
+  console.log(`Initialized:`);
+
+  for (let key in result.insertedIds) {
+    console.log(`  Inserted product with ID ${result.insertedIds[key]}`);
+  }
+}
+
 async function start(){
 
   const mongo = await connectDB();
+  await initDB(mongo);
 
   app.get('/', (req: Request, res: Response) => {
     res.send({ message: 'ok' });
@@ -93,7 +114,6 @@ async function start(){
         email,
         doNotDisturb
       }
-      
       await users.insertOne(user);
 
       res.status(201).send({"message": "User Created"});
@@ -130,7 +150,8 @@ async function start(){
   app.put('/api/user/favorites/add', verifyToken, async (req: Request, res: Response) => {
     const {userId, restaurantId} : {userId: string, restaurantId: string } = req.body;
 
-    console.log(req.body);
+    console.log(userId);
+    console.log(restaurantId);
 
     if(userId == null || restaurantId == null){
       res.status(400).send({message: "Body not complete"});
@@ -146,10 +167,12 @@ async function start(){
     }
 
     try{
-      //grabbing favorites list from favorites collection based on the userId
+
       const db = mongo.db();
-      const reviews = db.collection('favorites');
-      const user_favorite = await reviews.findOne({"userId": new ObjectId(userId)});
+
+      //grabbing favorites list from favorites collection based on the userId
+      const favorites_db = db.collection('favorites');
+      const user_favorite = await favorites_db.findOne({"userId": new ObjectId(userId)});
 
       console.log(user_favorite);
 
@@ -157,6 +180,7 @@ async function start(){
         res.status(400).send({message: "Body not complete"});
         return;
       }
+
       const {restaurant_list, _id} = user_favorite;
 
       if(restaurant_list == null || _id == null){
@@ -164,15 +188,20 @@ async function start(){
         return;
       }
 
-      //grabbing restaurant in coorelation with restaurant collection based on the restaurantId
+      //grabbing restaurant in restaurant collection based on the restaurantId
       const restaurants = db.collection('restaurants');
       const restaurant = await restaurants.findOne({"_id" : new ObjectId(restaurantId)}) as Restaurant;
 
+      if(!restaurant){
+        res.status(404).send({message: "Restaurant not found"});
+        return;
+      }
+
       restaurant_list.push(restaurant);
 
-      await reviews.updateOne({"userId" : new ObjectId(userId)}, {$set : {restaurant_list: restaurant_list}});
+      await favorites_db.updateOne({"userId" : new ObjectId(userId)}, {$set : {restaurant_list: restaurant_list}});
 
-      res.status(201).send({
+      res.status(200).send({
         message: "Favorites List Successfully Updated",
         _id,
         userId,
@@ -187,6 +216,47 @@ async function start(){
     }
 
   });
+
+  app.put('/api/user/favorites/delete', verifyToken, async (req: Request, res: Response) => {
+    const {userId, restaurantId} : {userId: string, restaurantId: string } = req.body;
+
+    if(userId == null || restaurantId == null){
+      res.status(400).send({message: "Body not complete"});
+      return;
+    }
+
+    try{
+      const db = mongo.db();
+      const favorites_db = db.collection('favorites');
+      const user_favorite = await favorites_db.findOne({'userId': new ObjectId(userId)}) as Favorites;
+
+      if(!user_favorite){
+        res.status(404).send({message: "User Not found"});
+        return;
+      }
+
+      let {restaurant_list} = user_favorite;
+      const favorites_size = restaurant_list.length;
+
+      restaurant_list = restaurant_list.filter((r: Restaurant) => {
+        return r._id.toString().localeCompare(restaurantId.toString()) != 0
+      });
+
+      //cheking if one was deleted, meaning the restaurant was found
+      if(favorites_size == restaurant_list.length){
+        res.status(404).send({message: "Restaurant Not Found"});
+        return;
+      }
+      
+      await favorites_db.updateOne({"userId" : new ObjectId(userId)}, {$set : {restaurant_list: restaurant_list}});
+
+      res.status(200).send({message: "Element successfully removed"});
+    }
+    catch(err:any) {
+      res.status(500).send({error: err.message});
+      return;
+    }
+  })
 
   app.get('/api/user/favorites/get', verifyToken, async (req: Request, res: Response) => {
     const {userId} = req.body;

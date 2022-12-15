@@ -11,7 +11,7 @@ The Review Comment Service is responsible for creating and get reviews for any s
 
 ### How to run the service:
 
-You should be running this service with the ``` docker-compose up ``` command, as it relies on the review-comment mongodb container to run for its database. The docker compose also has environment variable secrets such as the ACCESS_TOKEN for parsing jsonwebtokens for user authentication and the Database url to connect to the database. The service also relies on the eventbus and other services such as the review service, driver service, user service, and restaurant service as it will receive events from those service.To run it from scratch you will need to first ``` npm install``` then you will need to run ``` npm run build``` and then run ```npm start```, but you must have all the dependencies from above to run it from scratch without the docker-compose.
+You should be running this service with the ``` docker-compose up ``` command, as it relies on the review-comment mongodb container to run for its database. The docker compose also has environment variable secrets such as the ACCESS_TOKEN for parsing jsonwebtokens for user authentication and the Database url to connect to the database. The service also relies on the eventbus and other services such as the review service, driver service, user service, and restaurant service as it will receive events from those service.To run it from scratch you will need to first ``` npm install``` then you will need to run ``` npm run build``` and then run ```npm start```, but you must have all the dependencies from above to run it from scratch without the docker-compose. This service runs on prt 4007.
 
 ### Interactions and Events: 
 

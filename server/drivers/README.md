@@ -38,7 +38,7 @@ Registers a driver
 
 Request Data Constraints:
 
-```json
+```
 { 
   "name" : string, 
   "email": string, 
@@ -62,7 +62,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   {
       "message": string,
       "_id": string,
@@ -102,7 +102,7 @@ Allows the driver to login. Provies an auth token upon successful login.
 
 Request Data Constraints:
 
-```json
+```
 { 
   "email": string, 
   "password": string 
@@ -124,7 +124,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   {
     "message": string,
     "_id": string,
@@ -164,7 +164,7 @@ Retrieves a driver, given a driverId. Auth token needed.
 **BODY**:
 
 Request Data Constraints: 
-```json
+```
 {"driverId": string}
 ```
 
@@ -179,7 +179,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   {
     "_id": string,
     "name": string,
@@ -216,7 +216,7 @@ Updates the `doNotDisturb` field for a driver, so notifications can be sent/or n
 **BODY**:
 
 Request Data Constraints: 
-```json
+```
 {"driverId": string, "doNotDisutrb": boolean}
 ```
 
@@ -231,7 +231,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   {
     "_id": string,
     "name": string,
@@ -268,7 +268,7 @@ Updates the `email` field for a driver. A valid auth token must be provided.
 **BODY**:
 
 Request Data Constraints: 
-```json
+```
 {"driverId": string, "email": string}
 ```
 
@@ -283,7 +283,7 @@ Request Data Example:
 
   Response Data Constraints:
 
-  ```json
+  ```
   {
     "_id": string,
     "name": string,
@@ -309,4 +309,4 @@ Request Data Example:
 - `500 INTERNAL SERVER ERROR`: If there is an exception or other error condition that is rare or shouldn't occur
 
 ## How to run
-In order for this service to run you must run the `docker compose` command. The docker compose command will build all the docker containers for each service including the event bus and the frontend. This will also install all dependencies needed for each service and provision an independent MongoDB database respective to each service. The `4002` port is the port that this service is running on and it gets mapped to the docker container and stores a volume for the `mongodb_driver_container`. This service is not dependent on other services in order for it it function. However, other services depend on this service so it is important that the event bus is running so it can notify and communicate with other servies.
+In order for this service to run you must run the `docker compose` command. The docker compose command will build all the docker containers for each service including the event bus and the frontend. This will also install all dependencies needed for each service and provision an independent MongoDB database respective to each service. Additionally, the docker compose has an environment variable `ACCESS_TOKEN` which the service uses for parsing JWT tokens. The `4002` port is the port that this service is running on and it gets mapped to the docker container and stores a volume for the `mongodb_driver_container`. This service depends on the Metrics Service, Notifications Service, Reviews Service, Review Comments Service so they must be running in order for this service to work. Additionally, the event bus must be running, and should have succesfully subscribed to all of the events it needs prior to any API endpoints being called.
