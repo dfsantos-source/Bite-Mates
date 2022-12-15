@@ -299,7 +299,6 @@ Updates the isRead field of a notification, marking it as read
 **BODY**:
 
 Request Data Constraints: 
-PARAMS
 ```json
 {
     "isRead": boolean
@@ -307,7 +306,6 @@ PARAMS
 ```
 
 Request Data Example:
-PARAMS
 ```json
 {
     "isRead": true
@@ -357,7 +355,6 @@ Updates the isRead field of a notification, marking it as read
 **BODY**:
 
 Request Data Constraints: 
-PARAMS
 ```json
 {
     "isRead": boolean
@@ -365,7 +362,6 @@ PARAMS
 ```
 
 Request Data Example:
-PARAMS
 ```json
 {
     "isRead": true
