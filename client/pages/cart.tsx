@@ -4,6 +4,13 @@ import UserNavbar from '../components/UserNavbar';
 
 // AUTHOR: Dane Santos
 // Github Id: dfsantos-source
+
+// This file represents the Cart Component, which is the page 
+// where users can view their cart. This top-level Cart component
+// is built with many smaller components. Those smaller components are:
+// 1. CartItem Component
+// 2. CartList Component
+
 export interface Cart {
     _id: string,
     userId: string,
@@ -21,6 +28,7 @@ export interface CartItem {
 
 type Quantities = {[key: string] : number};
 
+// Cart Component
 export default function cart(): ReactElement {
   const [cart, setCart] = useState <Cart | null>(null);
   const [quantities, setQuantities] = useState <Quantities>({});
@@ -89,6 +97,7 @@ export default function cart(): ReactElement {
     }
   }
 
+  // CartItem Component
   const CartItem = (props: {item: CartItem}): ReactElement => {
     const handleRemoveClick = async(): Promise<void> => {
         if (cart != null) {
@@ -153,6 +162,7 @@ export default function cart(): ReactElement {
     )
   }
 
+  // CartList Component
   const CartList = (props: {data: CartItem[]}) => {
     // console.log(props.data);
     return props.data.map((item: CartItem) => {

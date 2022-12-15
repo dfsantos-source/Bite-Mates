@@ -1,34 +1,28 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Front-End Service
 
-## Getting Started
+Authors: 
 
-First, run the development server:
+Name: Dane Santos
+Github: dfsantos-source
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+Name: Aayush Bhagat
+Github: Aayush-Bhagat
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Name: Ali Rabeea
+Github: alirabeea
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+Name: Nolan LaRochelle
+Github: LaRochelleNolan
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+## Description
+This service is responsible for serving as the client side, frontend so users can interact with our application. This service is built using Next.js (approved by Professor) and React. 
 
-## Learn More
+## Interaction with other services
+This frontend service interacts with all of the backend services except for the Notifications and Metrics Service. The frontend interacts with the backend services by making HTTP Axios asynchronous requests to the backend server, which is then relayed back to the frontend service in the form of a HTTP response. The interaction of the frontend service extends to incorporate the use of JWT auth tokens so the requests to the backend are more secure and robust.
 
-To learn more about Next.js, take a look at the following resources:
+## Frontend endpoints / routes
+The frontend endpoints or routes are specific to each page. The way Next.js works is that each page in the `pages` directory acts as a route. For example, 'http:localhost:3000/login' will render the `login.tsx` page component. These frontend routes / endpoints are used to link each component page together so that the application flows from one page to the next. (ie. login -> renders restaurants page)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## How to run the service
+This service can be run alongside the backend by running `docker compose`. Or, if you only want to run this individual frontend service, you can run `npm install` and `npm run dev` to get the frontend service up and running. In order to see the full integration of the application, we suggest going with the first option.
