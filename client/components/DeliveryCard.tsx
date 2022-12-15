@@ -14,10 +14,10 @@ export default function DeliveryCard({delivery}: Props) {
           <div >Delivery:</div>
           <div>ID: {delivery._id}</div>
           <div>STATUS: {delivery.status}</div>
+          <div>TOTAL PRICE: {delivery.totalPrice}</div>
           <div> FOODS: {delivery.foods.map((food) => (
               <div key={food._id}>
                   <div> {food.name} </div>
-                  <div> {food.price} </div>
               </div>
           ))}</div>
       </div>

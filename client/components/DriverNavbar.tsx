@@ -19,7 +19,7 @@ export default function DriverNavbar() {
         <div>
             <Navbar bg="dark" variant="dark">
                 <Container>
-                    <Navbar.Brand href="#home">Navbar</Navbar.Brand>
+                    <Navbar.Brand href="#home">BeFake</Navbar.Brand>
                     <Nav style={{ color: "white" }} className="me-auto">
                         <Link className='mx-4' href="/unassignedDeliveries"> Unassigned Deliveries</Link>
                         <Link className='mx-4' href="/driverDeliveries"> My Deliveries</Link>
