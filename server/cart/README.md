@@ -75,7 +75,7 @@ Request Data Example:
 ---
 ### Add to cart
 ---
-Adds a food to a user's cart. A valid user auth token must b provided
+Adds a food to a user's cart. A valid user auth token must be provided
 
 **URL**: `/api/cart/add`
 
