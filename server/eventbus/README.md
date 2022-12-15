@@ -15,7 +15,7 @@ This service will need all the other services to be running for it to be useful.
 
 ### Interactions and Events: 
 
-The eventbus interacts with all of the services and events, as it will take in all of the events that any services sends. It will then process those events and send them to any service that has subscribed to that event.
+The event-bus interacts with all of the services and events, as it will take in all of the events that any services sends. It will then process those events and send them to any service that has subscribed to that event.
 
 ### Endpoints
 
