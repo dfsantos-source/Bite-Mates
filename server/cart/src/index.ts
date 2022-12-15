@@ -88,7 +88,7 @@ async function removeFoodDB(mongo: MongoClient, req: Request, res: Response): Pr
   try {
     const cartDB: WithId<Document> | null = await carts.findOne({"_id" : new ObjectId(cartId)});
     if (!cartDB) {
-      res.status(400).json({message: "Cart not found"});
+      res.status(404).json({message: "Cart not found"});
       return;
     }
     const items: CartItem[] = cartDB.items;
@@ -162,7 +162,7 @@ async function start() {
 
   app.post('/api/cart/create', async (req: Request, res: Response) => {
     const cart = await createCartDB(mongo, req, res);
-    res.status(200).json(cart);
+    res.status(201).json(cart);
     return;
   });
 
@@ -187,7 +187,7 @@ async function start() {
     try {
       const cartDB: WithId<Document> | null = await carts.findOne({"userId" : new ObjectId(userId)});
       if (!cartDB) {
-        res.status(400).json({message: "Cart not found"});
+        res.status(404).json({message: "Cart not found"});
         return;
       }
       const cartId: ObjectId = cartDB._id;
