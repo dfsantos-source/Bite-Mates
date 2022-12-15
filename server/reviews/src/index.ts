@@ -214,9 +214,16 @@ async function start() {
     try{
       const db = mongo.db();
 
+      //checking whether the user exists given a userId
+      const users = db.collection('users');
+      const user = users.findOne({_id: new ObjectId(userId)});
+      if(!user){
+        res.status(404).send({message: "User does not exist"});
+        return;
+      }
+
       //checking whether restaurant exists given restaurantId
       const restaurants_db = db.collection('restaurants');
-
       const restaurant = restaurants_db.findOne({_id: new ObjectId(restaurantId)});
       if(!restaurant){
         res.status(404).send({message: "Restaurant does not exist"});
@@ -232,8 +239,6 @@ async function start() {
         content,
         rating
       };
-
-      console.log("3")
       
       await reviews.insertOne(review);
 
@@ -242,11 +247,7 @@ async function start() {
         data: review
       }
 
-      console.log("4")
-
       await axios.post('http://eventbus:4000/events', RestaurantReviewCreated);
-
-      console.log("5")
 
       res.status(201).send({
         message: "Review successfully registered",
