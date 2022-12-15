@@ -38,7 +38,9 @@ EndPoints:
 
     app.get('/api/reviews/driver/get/:driverId')
 
-        - This endpoint hanldes the retrieval of the reviews from a specific driver. The endpoint will take in a driverId from the  paramaters, where it will traverse the driverReview document for the driverId, and return all reviews that are tied to that driver.
+        {driverId} = req.params
+
+        - This endpoint hanldes the retrieval of the reviews from a specific driver. The endpoint will take in a driverId from the paramaters, where it will traverse the driverReview document for the driverId, and return all reviews that are tied to that driver.
 
         - The user will recieve a 200 status, with an array of all driverReview objects.
         - If the endpoint is missing any of the data, it will respond with a 400.
@@ -72,6 +74,8 @@ EndPoints:
 
     app.get('/api/reviews/restaurant/get/:restaurantId')
 
+        {restaurantId} = req.params
+
         - This endpoint handles the retrieval of the reviews from a specific restaurant. The endpoint will take in a restaurantId from the URL paramater. The endpoint will traverse the restaurantReview, and send back a 200 status with an array of all reviews that are tied to that restaurant.
 
         - If no restaurantId is give, the endpoint will respond with a 400
@@ -82,3 +86,5 @@ EndPoints:
 
 
 Tutorial:
+
+    This service requires docker compose build && docker compose in order to properly build it after making changes. "docker compose build" builds the containers as well as builds the mongodb databases. The service, seeing as it needs to listen for events from the users, restaurants, and drivers, requires that that service are also running for the restaurant service to be running properly.

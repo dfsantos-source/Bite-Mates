@@ -62,4 +62,4 @@ Endpoints:
 
 Tutorial:
 
-    This service requires docker compose build && docker compose in order to properly build it after making changes. Docker compose build builds the containers as well as builds the mongodb databases. The service, seeing as it needs to listen for events from the user and restaurant services, requires that those services are also running for the service to be running properly.
+    This service requires docker compose build && docker compose in order to properly build it after making changes. Docker compose build builds the containers as well as builds the mongodb databases. The service, seeing as it needs to listen for events from the user and restaurant services, requires that those services are also running for the favorites service to be running properly.
