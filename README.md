@@ -1,4 +1,4 @@
-# College-Eats
+# Bite-Mates
 
 An Uber Eats like application. Users are allowed to view restaurants and the food they want to order for delivery. Drivers will be able to accept orders.
 
