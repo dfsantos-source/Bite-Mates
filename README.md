@@ -1,5 +1,4 @@
-# milestone-2-implementation-befake
-milestone-2-implementation-befake created by GitHub Classroom
+# College-Eats
 
 ### Youtube Video Presentation:
 
