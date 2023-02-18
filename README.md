@@ -1,5 +1,12 @@
 # College-Eats
 
+An Uber Eats like application. Users are allowed to view restaurants and the food they want to order for delivery. Drivers will be able to accept orders.
+
+An asynchronous microservice architecture is used to abstract the details and improve performance. Authentication through the use of JWT tokens is also implemented.
+
+Tech stack used: 
+Typescript, Node.js, JWT, MongoDB, Docker, Express.js 
+
 ### Youtube Video Presentation:
 
 https://www.youtube.com/watch?v=t7rv692qPlU
